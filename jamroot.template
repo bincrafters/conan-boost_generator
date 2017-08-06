@@ -72,7 +72,7 @@ rule export-jamroot ( targets * : sources * : properties * )
     local dollar = "\$" ;
     for local library in {{{libraries}}}
     {
-        print.text "project.register-id /boost/$(library) : $(dollar)(__name__) ;"
+        print.text "project.register-id /boost/$(library) : $(dollar)(__name__) ;" ;
         print.text "lib boost_$(library) : : <name>boost_$(library) <search>. ;" ;
     }
 }
