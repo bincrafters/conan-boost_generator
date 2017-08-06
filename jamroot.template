@@ -1,11 +1,20 @@
 import modules ;
+import generate ;
+import print ;
+import build-system ;
+
 modules.poke : BOOST_BUILD_PATH : [ modules.peek : BOOST_BUILD_PATH ] "{{{boostcpp_jam_dir}}}" ;
+
 import boostcpp ;
+
 path-constant BOOST_ROOT : . ;
 constant BOOST_VERSION : {{{boost_version}}} ;
 constant BOOST_JAMROOT_MODULE : $(__name__) ;
+
 boostcpp.set-version $(BOOST_VERSION) ;
+
 local DEP_INCLUDES = {{{deps.include_paths}}} ;
+
 project boost
 :   requirements
     <define>BOOST_ALL_NO_LIB=1
@@ -16,30 +25,61 @@ project boost
     <include>$(DEP_INCLUDES)
     <include>{{{library}}}/include
 :   build-dir bin
-:   default-build
+:   default-build {{{variant}}}
     <target-os>{{{os}}}
     <address-model>{{{address_model}}}
     <architecture>{{{architecture}}}
 ;
+
 rule tag ( name : type ? : property-set )
 {
     return [ boostcpp.tag $(name) : $(type) : $(property-set) ] ;
 }
+
 rule boost-install ( libraries * )
 {
     install stage : $(libraries) : <location>output ;
     module [ CALLER_MODULE ] { explicit stage ; }
 }
+
 use-project /boost/{{{library}}} : {{{library}}}/build ;
+
 module boostcpp
 {
-IMPORT alias : alias : $(__name__) : __alias__ ;
-rule alias ( name : sources * : requirements * : default-build * :
-    usage-requirements * )
-{
-    if $(sources) = libs/{{{library}}}/build { sources = {{{library}}}/build ; }
-    return [ __alias__ $(name) : $(sources) : $(requirements)
-        : $(default-build) : $(usage-requirements) ] ;
+    IMPORT alias : alias : $(__name__) : __alias__ ;
+    rule alias ( name : sources * : requirements * : default-build * :
+        usage-requirements * )
+    {
+        if $(sources) = libs/{{{library}}}/build { sources = {{{library}}}/build ; }
+        return [ __alias__ $(name) : $(sources) : $(requirements)
+            : $(default-build) : $(usage-requirements) ] ;
+    }
 }
-}
+
 boostcpp.declare-targets {{{library}}} ;
+
+rule export-jamroot ( targets * : sources * : properties * )
+{
+    print.output $(targets[1]) ;
+    print.text "project /boost/{{{library}}} ;" ;
+    print.text "lib boost_{{{library}}} : : <name>boost_{{{library}}} <search>. ;" ;
+}
+
+make jamroot.jam : : @export-jamroot ;
+
+install export-jamroot : jamroot.jam : <location>stage/lib ;
+
+{{{deps_info}}}
+
+rule post-build ( ok ? )
+{
+    if forward in [ modules.peek : top-level-targets ]
+    {
+        if $(ok)
+        {
+            ECHO "The {{{name}}} C++ Library was successfully built!" ;
+        }
+    }
+}
+IMPORT $(__name__) : post-build : : $(__name__).post-build ;
+build-system.set-post-build-hook $(__name__).post-build ;

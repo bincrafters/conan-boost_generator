@@ -37,6 +37,15 @@ class boost(Generator):
         boost_generator_source_path = os.path.join(boost_generator_root_path, os.pardir, os.pardir, "export_source")
         template_file_path = os.path.join(boost_generator_source_path, "jamroot.template")
 
+        deps_info = []
+        for dep_name, dep_cpp_info in self.deps_build_info.dependencies:
+            deps_libdir = os.path.join(dep_cpp_info.rootpath, dep_cpp_info.libdirs[0])
+            if os.path.isfile(os.path.join(deps_libdir,"jamroot.jam")):
+                deps_info.append(
+                    "use-project " + dep_name +
+                    " : " + deps_libdir.replace('\\','/') + " ;")
+        deps_info = "\n".join(deps_info)
+
         with open("boost-build.jam", "w") as f:
             f.write(boost_build_jam_content)
 
@@ -49,7 +58,10 @@ class boost(Generator):
                 .replace("{{{os}}}", self.b2_os()) \
                 .replace("{{{address_model}}}", self.b2_address_model()) \
                 .replace("{{{architecture}}}", self.b2_architecture()) \
-                .replace("{{{boostcpp_jam_dir}}}", boost_generator_source_path.replace('\\','/'))
+                .replace("{{{boostcpp_jam_dir}}}", boost_generator_source_path.replace('\\','/')) \
+                .replace("{{{deps_info}}}", deps_info) \
+                .replace("{{{variant}}}", self.b2_variant()) \
+                .replace("{{{name}}}", conan_file.name)
             return jamroot_content
 
     def b2_os(self):
@@ -84,3 +96,9 @@ class boost(Generator):
             return 'arm'
         else:
             return ""
+    
+    def b2_variant(self):
+        if str(self.settings.build_type) == "Debug":
+            return "debug"
+        else:
+            return "release"
