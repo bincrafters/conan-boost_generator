@@ -3,6 +3,7 @@ import generate ;
 import print ;
 import build-system ;
 import targets ;
+import path ;
 
 modules.poke : BOOST_BUILD_PATH : [ modules.peek : BOOST_BUILD_PATH ] "{{{boostcpp_jam_dir}}}" ;
 
@@ -57,12 +58,17 @@ module boostcpp
     }
 }
 
+local LIBRARIES_BUILD = ;
 for local library in $(LIBRARIES)
 {
-    use-project /boost/$(library) : $(library)/build ;
+    if [ path.exists $(library)/build ]
+    {
+        use-project /boost/$(library) : $(library)/build ;
+        LIBRARIES_BUILD += $(library) ;
+    }
 }
 
-boostcpp.declare-targets $(LIBRARIES) ;
+boostcpp.declare-targets $(LIBRARIES_BUILD) ;
 
 rule export-jamroot ( targets * : sources * : properties * )
 {
