@@ -1,5 +1,6 @@
-import boostcpp ;
 import modules ;
+modules.poke : BOOST_BUILD_PATH : [ modules.peek : BOOST_BUILD_PATH ] "{{{boostcpp_jam_dir}}}" ;
+import boostcpp ;
 path-constant BOOST_ROOT : . ;
 constant BOOST_VERSION : {{{boost_version}}} ;
 constant BOOST_JAMROOT_MODULE : $(__name__) ;
@@ -7,8 +8,6 @@ boostcpp.set-version $(BOOST_VERSION) ;
 local DEP_INCLUDES = {{{deps.include_paths}}} ;
 project boost
 :   requirements
-    # [ boostcpp.architecture ]
-    # [ boostcpp.address-model ]
     <define>BOOST_ALL_NO_LIB=1
     <tag>@$(__name__).tag
     <link>shared,<runtime-link>static:<build>no
@@ -38,7 +37,7 @@ IMPORT alias : alias : $(__name__) : __alias__ ;
 rule alias ( name : sources * : requirements * : default-build * :
     usage-requirements * )
 {
-    if $(sources) = libs/%(library)s/build { sources = {{{library}}}/build ; }
+    if $(sources) = libs/{{{library}}}/build { sources = {{{library}}}/build ; }
     return [ __alias__ $(name) : $(sources) : $(requirements)
         : $(default-build) : $(usage-requirements) ] ;
 }

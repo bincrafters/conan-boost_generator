@@ -30,7 +30,7 @@ class boost(Generator):
         boost_build = conan_file.deps_cpp_info["Boost.Build"]
         boost_build_root_path = boost_build.rootpath
         boost_build_kernel_path = os.path.join(boost_build_root_path, "share", "boost-build", "src", "kernel")
-        boost_build_jam_content = "boost-build " + boost_build_kernel_path
+        boost_build_jam_content = 'boost-build "' + boost_build_kernel_path + '" ;'
 
         boost_generator = conan_file.deps_cpp_info["Boost.Generator"]
         boost_generator_root_path = boost_generator.rootpath
@@ -48,7 +48,8 @@ class boost(Generator):
                 .replace("{{{deps.include_paths}}}", jam_include_paths) \
                 .replace("{{{os}}}", self.b2_os()) \
                 .replace("{{{address_model}}}", self.b2_address_model()) \
-                .replace("{{{architecture}}}", self.b2_architecture())
+                .replace("{{{architecture}}}", self.b2_architecture()) \
+                .replace("{{{boostcpp_jam_dir}}}", boost_generator_source_path)
             return jamroot_content
 
     def b2_os(self):
