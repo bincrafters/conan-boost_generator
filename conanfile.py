@@ -46,13 +46,18 @@ class boost(Generator):
                     " : " + deps_libdir.replace('\\','/') + " ;")
         deps_info = "\n".join(deps_info)
 
+        if hasattr(conan_file, 'lib_short_name'):
+            libraries = conan_file.lib_short_name
+        else:
+            libraries = " ".join(conan_file.lib_short_names)
+
         with open("boost-build.jam", "w") as f:
             f.write(boost_build_jam_content)
 
         with open(template_file_path) as f:
             template_content = f.read()
             jamroot_content = template_content \
-                .replace("{{{library}}}", conan_file.lib_short_name) \
+                .replace("{{{libraries}}}", libraries) \
                 .replace("{{{boost_version}}}", conan_file.version) \
                 .replace("{{{deps.include_paths}}}", jam_include_paths) \
                 .replace("{{{os}}}", self.b2_os()) \

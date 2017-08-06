@@ -2,6 +2,7 @@ import modules ;
 import generate ;
 import print ;
 import build-system ;
+import targets ;
 
 modules.poke : BOOST_BUILD_PATH : [ modules.peek : BOOST_BUILD_PATH ] "{{{boostcpp_jam_dir}}}" ;
 
@@ -14,6 +15,7 @@ constant BOOST_JAMROOT_MODULE : $(__name__) ;
 boostcpp.set-version $(BOOST_VERSION) ;
 
 local DEP_INCLUDES = {{{deps.include_paths}}} ;
+local LIBRARIES = {{{libraries}}} ;
 
 project boost
 :   requirements
@@ -23,7 +25,7 @@ project boost
     <toolset>como:<link>static
     <toolset>como-linux:<define>_GNU_SOURCE=1
     <include>$(DEP_INCLUDES)
-    <include>{{{library}}}/include
+    <include>$(LIBRARIES)/include
 :   build-dir bin
 :   default-build {{{variant}}}
     <target-os>{{{os}}}
@@ -42,27 +44,37 @@ rule boost-install ( libraries * )
     module [ CALLER_MODULE ] { explicit stage ; }
 }
 
-use-project /boost/{{{library}}} : {{{library}}}/build ;
-
 module boostcpp
 {
-    IMPORT alias : alias : $(__name__) : __alias__ ;
+    IMPORT alias : alias : boostcpp : __alias__ ;
     rule alias ( name : sources * : requirements * : default-build * :
         usage-requirements * )
     {
-        if $(sources) = libs/{{{library}}}/build { sources = {{{library}}}/build ; }
+        local LIBRARIES = {{{libraries}}} ;
+        if $(sources) in libs/$(LIBRARIES)/build { sources = [ MATCH libs/(.*) : $(sources) ] ; }
         return [ __alias__ $(name) : $(sources) : $(requirements)
             : $(default-build) : $(usage-requirements) ] ;
     }
 }
 
-boostcpp.declare-targets {{{library}}} ;
+for local library in $(LIBRARIES)
+{
+    use-project /boost/$(library) : $(library)/build ;
+}
+
+boostcpp.declare-targets $(LIBRARIES) ;
 
 rule export-jamroot ( targets * : sources * : properties * )
 {
     print.output $(targets[1]) ;
-    print.text "project /boost/{{{library}}} ;" ;
-    print.text "lib boost_{{{library}}} : : <name>boost_{{{library}}} <search>. ;" ;
+    print.text "import project ;" ;
+    print.text "project /{{{name}}} ;" ;
+    local dollar = "\$" ;
+    for local library in {{{libraries}}}
+    {
+        print.text "project.register-id /boost/$(library) : $(dollar)(__name__) ;"
+        print.text "lib boost_$(library) : : <name>boost_$(library) <search>. ;" ;
+    }
 }
 
 make jamroot.jam : : @export-jamroot ;
