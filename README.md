@@ -1,12 +1,13 @@
-## This repository holds a conan recipe for a Conan.io Generator for the Boost C++ Libraries.
+## A Conan.io Generator for the Boost C++ Libraries.
 
 [Conan.io](https://conan.io) package for [Boost Libraries](http://www.boost.org/doc/libs/1_64_0/libs/libraries.htm).
 
 The packages generated with this **conanfile** can be found in [Bintray](https://bintray.com/bincrafters/public-conan/Boost.Generator%3Abincrafters).
 
-## For Users: Use this package
+## To use this package
 
-This package is not intended to be used outside of building the Boost libraries for Conan.io. It is also a special Conan package, in that it is a "**Generator**" package.  [Read about creating custom generators for Conan.io Here](conanio.readthedocs.io/en/latest/howtos/dyn_generators.html).  This means it gets distributed just like other packages, but is only intended to be used by other packages as a `build_requires`.  Notably, it also depends on another as a `build_requires` : **Boost.Build**.  Here's an summary of how it works, we'll use **Boost.System** as an example. 
+This package is not intended to be used outside of building the Boost libraries for Conan.io. It is also a special Conan package, in that it is a "**Generator**" package.  [Read about creating custom generators for Conan.io here](conanio.readthedocs.io/en/latest/howtos/dyn_generators.html).  
+**Generators** are distributed just like other packages, and used in other packages as `build_requires`.  Notably, this generator is intended to be used specifically with the boost build system as packaged by Bincrafters.  Below is a summary of how the generation and build process work for this generator; we'll use **Boost.System** as an example. 
 
 ### To build and package Boost.System
 * Look at the recipe for **Boost.System** here: [Boost System Recipe](https://github.com/bincrafters/conan-boost-system)
@@ -47,11 +48,11 @@ The following command both runs all the steps of the conan file, and publishes t
 
     $ conan create bincrafters/testing
 	
-## Add Remote and Associate package with it
+## Add bincrafters repository to your "remotes"
 
 	$ conan remote add bincrafters "https://api.bintray.com/conan/bincrafters/public-conan"
 
-## Upload
+## Upload to bintray 
 
     $ conan upload --all --remote bincrafters Boost.Generator/0.0.1@bincrafters/testing
 
