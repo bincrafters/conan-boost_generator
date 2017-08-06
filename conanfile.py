@@ -26,10 +26,10 @@ class boost(Generator):
     @property
     def content(self):
         conan_file = self.conanfile
-        jam_include_paths = ' '.join('"' + path + '"' for path in conan_file.deps_cpp_info.includedirs)
+        jam_include_paths = ' '.join('"' + path + '"' for path in conan_file.deps_cpp_info.includedirs).replace('\\','/')
         boost_build = conan_file.deps_cpp_info["Boost.Build"]
         boost_build_root_path = boost_build.rootpath
-        boost_build_kernel_path = os.path.join(boost_build_root_path, "share", "boost-build", "src", "kernel")
+        boost_build_kernel_path = os.path.join(boost_build_root_path, "share/boost-build/src/kernel").replace('\\','/')
         boost_build_jam_content = 'boost-build "' + boost_build_kernel_path + '" ;'
 
         boost_generator = conan_file.deps_cpp_info["Boost.Generator"]
@@ -49,7 +49,7 @@ class boost(Generator):
                 .replace("{{{os}}}", self.b2_os()) \
                 .replace("{{{address_model}}}", self.b2_address_model()) \
                 .replace("{{{architecture}}}", self.b2_architecture()) \
-                .replace("{{{boostcpp_jam_dir}}}", boost_generator_source_path)
+                .replace("{{{boostcpp_jam_dir}}}", boost_generator_source_path.replace('\\','/'))
             return jamroot_content
 
     def b2_os(self):
