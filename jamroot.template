@@ -43,4 +43,4 @@ rule alias ( name : sources * : requirements * : default-build * :
         : $(default-build) : $(usage-requirements) ] ;
 }
 }
-boostcpp.declare-targets {{{library}}}s ;
+boostcpp.declare-targets {{{library}}} ;
