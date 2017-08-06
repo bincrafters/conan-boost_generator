@@ -7,7 +7,8 @@ The packages generated with this **conanfile** can be found in [Bintray](https:/
 ## To use this package
 
 This package is not intended to be used outside of building the Boost libraries for Conan.io. It is also a special Conan package, in that it is a "**Generator**" package.  [Read about creating custom generators for Conan.io here](conanio.readthedocs.io/en/latest/howtos/dyn_generators.html).  
-**Generators** are distributed just like other packages, and used in other packages as `build_requires`.  Notably, this generator is intended to be used specifically with the boost build system as packaged by Bincrafters.  Below is a summary of how the generation and build process work for this generator; we'll use **Boost.System** as an example. 
+
+Generators are distributed just like other packages, and used in other packages as `build_requires`.  Notably, this generator is intended to be used specifically with the boost build system as packaged by Bincrafters.  Below is a summary of how the generation and build process work for this generator; we'll use **Boost.System** as an example. 
 
 ### To build and package Boost.System
 * Look at the recipe for **Boost.System** here: [Boost System Recipe](https://github.com/bincrafters/conan-boost-system)

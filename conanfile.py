@@ -14,7 +14,7 @@ class BoostGenerator(ConanFile):
     license = "BSL"
     boost_version = "1.64.0"
     exports_sources = "boostcpp.jam", "jamroot.template"
-
+    requires = "Boost.Build/1.64.0@bincrafters/testing"
 # This is the actual generator code
 
 
