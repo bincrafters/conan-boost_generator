@@ -1,4 +1,24 @@
 import modules ;
+
+import project ;
+rule project_find ( name : current-location )
+{
+    local caller = [ CALLER_MODULE ] ;
+    module $(caller)
+    {
+        local name = $(1) ;
+        if [ MATCH "([.][.][/][.][.]/.*/build)" : $(name) ]
+        {
+            name = [ MATCH "[.][.][/][.][.]/(.*)/build" : $(name) ] ;
+            name = /boost/$(name) ;
+        }
+        return [ __project_find__ $(name) : $(2) ] ;
+    }
+}
+IMPORT project : find : : __project_find__ ;
+IMPORT $(__name__) : project_find : project : find ;
+EXPORT project : find ;
+
 import generate ;
 import print ;
 import build-system ;
