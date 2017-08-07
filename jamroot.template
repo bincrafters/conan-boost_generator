@@ -78,6 +78,28 @@ module boostcpp
     }
 }
 
+rule lib_target (
+    name : sources * : requirements * : default-build * : usage-requirements * )
+{
+    local caller = [ CALLER_MODULE ] ;
+    module $(caller)
+    {
+        local sources ;
+        for s in $(2)
+        {
+            if [ MATCH "([/]boost[/][/])" : $(s) ]
+            {
+                s = [ MATCH "[/]boost[/][/](.*)" : $(s) ] ;
+                s = /boost/$(s) ;
+            }
+            sources += $(s) ;
+        }
+        return [ __lib_target__ $(1) : $(sources) : $(3) : $(4) : $(5) ] ;
+    }
+}
+IMPORT : lib : : __lib_target__ ;
+IMPORT $(__name__) : lib_target : : lib ;
+
 local LIBRARIES_BUILD = ;
 for local library in $(LIBRARIES)
 {
