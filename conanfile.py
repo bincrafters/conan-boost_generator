@@ -1,5 +1,5 @@
 from conans.model import Generator
-from conans import ConanFile, os, tools
+from conans import ConanFile, os, tools, load
 # This is the normal packaging info since generators
 # get published just like other packages. Although
 # most of the standard package methods are overridden
@@ -13,15 +13,18 @@ class BoostGenerator(ConanFile):
     description = "Conan build generator for boost libraries http://www.boost.org/doc/libs/1_64_0/libs/libraries.htm"
     license = "BSL"
     boost_version = "1.64.0"
-    exports_sources = "boostcpp.jam", "jamroot.template"
+    exports = "boostcpp.jam", "jamroot.template"
     requires = "Boost.Build/1.64.0@bincrafters/testing"
 # This is the actual generator code
 
 
 class boost(Generator):
+    template_content = "" #load("jamroot.template")
+    boostcpp_content = ""# load("boostcpp.jam")
+    
     @property
     def filename(self):
-        return "jamroot"
+        pass #in this case, filename defined in return value of content method
 
     @property
     def content(self):
@@ -31,11 +34,6 @@ class boost(Generator):
         boost_build_root_path = boost_build.rootpath
         boost_build_kernel_path = os.path.join(boost_build_root_path, "share/boost-build/src/kernel").replace('\\','/')
         boost_build_jam_content = 'boost-build "' + boost_build_kernel_path + '" ;'
-
-        boost_generator = conan_file.deps_cpp_info["Boost.Generator"]
-        boost_generator_root_path = boost_generator.rootpath
-        boost_generator_source_path = os.path.join(boost_generator_root_path, os.pardir, os.pardir, "export_source")
-        template_file_path = os.path.join(boost_generator_source_path, "jamroot.template")
 
         deps_info = []
         for dep_name, dep_cpp_info in self.deps_build_info.dependencies:
@@ -54,20 +52,22 @@ class boost(Generator):
         with open("boost-build.jam", "w") as f:
             f.write(boost_build_jam_content)
 
-        with open(template_file_path) as f:
-            template_content = f.read()
-            jamroot_content = template_content \
-                .replace("{{{libraries}}}", libraries) \
-                .replace("{{{boost_version}}}", conan_file.version) \
-                .replace("{{{deps.include_paths}}}", jam_include_paths) \
-                .replace("{{{os}}}", self.b2_os()) \
-                .replace("{{{address_model}}}", self.b2_address_model()) \
-                .replace("{{{architecture}}}", self.b2_architecture()) \
-                .replace("{{{boostcpp_jam_dir}}}", boost_generator_source_path.replace('\\','/')) \
-                .replace("{{{deps_info}}}", deps_info) \
-                .replace("{{{variant}}}", self.b2_variant()) \
-                .replace("{{{name}}}", conan_file.name)
-            return jamroot_content
+        jamroot_content = self.template_content \
+            .replace("{{{libraries}}}", libraries) \
+            .replace("{{{boost_version}}}", conan_file.version) \
+            .replace("{{{deps.include_paths}}}", jam_include_paths) \
+            .replace("{{{os}}}", self.b2_os()) \
+            .replace("{{{address_model}}}", self.b2_address_model()) \
+            .replace("{{{architecture}}}", self.b2_architecture()) \
+            .replace("{{{deps_info}}}", deps_info) \
+            .replace("{{{variant}}}", self.b2_variant()) \
+            .replace("{{{name}}}", conan_file.name)
+            
+        
+        return {
+        "boostcpp.jam" : self.boostcpp_content, 
+        "jamroot" : jamroot_content,
+        "jamroot" : jamroot_content}
 
     def b2_os(self):
         b2_os = {
