@@ -15,7 +15,12 @@ class BoostGenerator(ConanFile):
     boost_version = "1.64.0"
     exports = "boostcpp.jam", "jamroot.template"
     requires = "Boost.Build/1.64.0@bincrafters/testing"
-# This is the actual generator code
+    
+    def package_info(self):
+        pass
+
+        
+# Below is the actual generator code
 
 
 class boost(Generator):
@@ -37,6 +42,7 @@ class boost(Generator):
 
         deps_info = []
         for dep_name, dep_cpp_info in self.deps_build_info.dependencies:
+            print (dep_name)
             deps_libdir = os.path.join(dep_cpp_info.rootpath, dep_cpp_info.libdirs[0])
             if os.path.isfile(os.path.join(deps_libdir,"jamroot.jam")):
                 deps_info.append(
@@ -63,11 +69,7 @@ class boost(Generator):
             .replace("{{{variant}}}", self.b2_variant()) \
             .replace("{{{name}}}", conan_file.name)
             
-        
-        return {
-        "boostcpp.jam" : self.boostcpp_content, 
-        "jamroot" : jamroot_content,
-        "jamroot" : jamroot_content}
+        return {"boostcpp.jam" : self.boostcpp_content, "jamroot" : jamroot_content}
 
     def b2_os(self):
         b2_os = {
