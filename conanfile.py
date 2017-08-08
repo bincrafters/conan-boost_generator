@@ -24,8 +24,8 @@ class BoostGenerator(ConanFile):
 
 
 class boost(Generator):
-    template_content = "" #load("jamroot.template")
-    boostcpp_content = ""# load("boostcpp.jam")
+    template_content = load("jamroot.template")
+    boostcpp_content = load("boostcpp.jam")
     
     @property
     def filename(self):
@@ -54,9 +54,6 @@ class boost(Generator):
             libraries = conan_file.lib_short_name
         else:
             libraries = " ".join(conan_file.lib_short_names)
-
-        with open("boost-build.jam", "w") as f:
-            f.write(boost_build_jam_content)
 
         jamroot_content = self.template_content \
             .replace("{{{libraries}}}", libraries) \
