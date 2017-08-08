@@ -1,4 +1,4 @@
-from conans.model import Generator
+from conans.model.conan_generator import Generator
 from conans import ConanFile, os, tools, load
 # This is the normal packaging info since generators
 # get published just like other packages. Although
@@ -16,11 +16,7 @@ class BoostGenerator(ConanFile):
     exports = "boostcpp.jam", "jamroot.template"
     requires = "Boost.Build/1.64.0@bincrafters/testing"
     
-    def package_info(self):
-        self.cpp_info.includedirs = []
-        self.cpp_info.bindirs = []
-
-        
+       
 # Below is the actual generator code
 
 
@@ -32,8 +28,6 @@ class boost(Generator):
 
     @property
     def content(self):
-        files = [f for f in os.listdir('.') if os.path.isfile(f)]
-        print(os.getcwd())
         template_content = load("jamroot.template")
         boostcpp_content = load("boostcpp.jam")
         conan_file = self.conanfile
@@ -42,6 +36,11 @@ class boost(Generator):
         boost_build_root_path = boost_build.rootpath
         boost_build_kernel_path = os.path.join(boost_build_root_path, "share/boost-build/src/kernel").replace('\\','/')
         boost_build_jam_content = 'boost-build "' + boost_build_kernel_path + '" ;'
+        
+        boost_generator = conan_file.deps_cpp_info["Boost.Generator"]
+        boost_generator_root_path = boost_generator.rootpath
+        boost_generator_source_path = os.path.join(boost_generator_root_path, os.pardir, os.pardir, "export_source")
+        template_file_path = os.path.join(boost_generator_source_path, "jamroot.template")
 
         deps_info = []
         for dep_name, dep_cpp_info in self.deps_build_info.dependencies:
