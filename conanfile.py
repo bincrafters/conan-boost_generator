@@ -17,22 +17,25 @@ class BoostGenerator(ConanFile):
     requires = "Boost.Build/1.64.0@bincrafters/testing"
     
     def package_info(self):
-        pass
+        self.cpp_info.includedirs = []
+        self.cpp_info.bindirs = []
 
         
 # Below is the actual generator code
 
 
 class boost(Generator):
-    template_content = load("jamroot.template")
-    boostcpp_content = load("boostcpp.jam")
-    
+   
     @property
     def filename(self):
         pass #in this case, filename defined in return value of content method
 
     @property
     def content(self):
+        files = [f for f in os.listdir('.') if os.path.isfile(f)]
+        print(os.getcwd())
+        template_content = load("jamroot.template")
+        boostcpp_content = load("boostcpp.jam")
         conan_file = self.conanfile
         jam_include_paths = ' '.join('"' + path + '"' for path in conan_file.deps_cpp_info.includedirs).replace('\\','/')
         boost_build = conan_file.deps_cpp_info["Boost.Build"]
@@ -55,7 +58,7 @@ class boost(Generator):
         else:
             libraries = " ".join(conan_file.lib_short_names)
 
-        jamroot_content = self.template_content \
+        jamroot_content = template_content \
             .replace("{{{libraries}}}", libraries) \
             .replace("{{{boost_version}}}", conan_file.version) \
             .replace("{{{deps.include_paths}}}", jam_include_paths) \
@@ -67,7 +70,7 @@ class boost(Generator):
             .replace("{{{name}}}", conan_file.name)
             
         return {
-            "boostcpp.jam" : self.boostcpp_content, 
+            "boostcpp.jam" : boostcpp_content, 
             "jamroot" : jamroot_content,
             "boost-build.jam" : boost_build_jam_content
         }
