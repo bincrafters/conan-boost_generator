@@ -69,7 +69,11 @@ class boost(Generator):
             .replace("{{{variant}}}", self.b2_variant()) \
             .replace("{{{name}}}", conan_file.name)
             
-        return {"boostcpp.jam" : self.boostcpp_content, "jamroot" : jamroot_content}
+        return {
+            "boostcpp.jam" : self.boostcpp_content, 
+            "jamroot" : jamroot_content,
+            "boost-build.jam" : boost_build_jam_content
+        }
 
     def b2_os(self):
         b2_os = {
