@@ -28,8 +28,7 @@ class boost(Generator):
 
     @property
     def content(self):
-        template_content = load("jamroot.template")
-        boostcpp_content = load("boostcpp.jam")
+
         conan_file = self.conanfile
         jam_include_paths = ' '.join('"' + path + '"' for path in conan_file.deps_cpp_info.includedirs).replace('\\','/')
         boost_build = conan_file.deps_cpp_info["Boost.Build"]
@@ -39,12 +38,16 @@ class boost(Generator):
         
         boost_generator = conan_file.deps_cpp_info["Boost.Generator"]
         boost_generator_root_path = boost_generator.rootpath
-        boost_generator_source_path = os.path.join(boost_generator_root_path, os.pardir, os.pardir, "export_source")
+        boost_generator_source_path = os.path.join(boost_generator_root_path, os.pardir, os.pardir, "source")
+        
         template_file_path = os.path.join(boost_generator_source_path, "jamroot.template")
+        boostcpp_file_path = os.path.join(boost_generator_source_path, "boostcpp.jam")
+        
+        template_content = load(template_file_path)
+        boostcpp_content = load(boostcpp_file_path)
 
         deps_info = []
         for dep_name, dep_cpp_info in self.deps_build_info.dependencies:
-            print (dep_name)
             deps_libdir = os.path.join(dep_cpp_info.rootpath, dep_cpp_info.libdirs[0])
             if os.path.isfile(os.path.join(deps_libdir,"jamroot.jam")):
                 deps_info.append(
