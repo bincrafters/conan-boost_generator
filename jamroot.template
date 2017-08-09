@@ -87,8 +87,8 @@ rule lib_target (
         {
             if [ MATCH "([/]boost[/][/])" : $(source) ]
             {
-                s = [ MATCH "[/]boost[/][/](.*)" : $(source) ] ;
-                s = /boost/$(source) ;
+                source = [ MATCH "[/]boost[/][/](.*)" : $(source) ] ;
+                source = /boost/$(source) ;
             }
             else if [ MATCH "([.][.][/][.][.]/.*/build)" : $(source) ]
             {
