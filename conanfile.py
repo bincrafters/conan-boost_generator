@@ -51,7 +51,7 @@ class boost(Generator):
             deps_libdir = os.path.join(dep_cpp_info.rootpath, dep_cpp_info.libdirs[0])
             if os.path.isfile(os.path.join(deps_libdir,"jamroot.jam")):
                 deps_info.append(
-                    "use-project " + dep_name +
+                    "use-project /" + dep_name +
                     " : " + deps_libdir.replace('\\','/') + " ;")
         deps_info = "\n".join(deps_info)
 

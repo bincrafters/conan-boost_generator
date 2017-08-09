@@ -83,16 +83,21 @@ rule lib_target (
     module $(caller)
     {
         local sources ;
-        for s in $(2)
+        for source in $(2)
         {
-            if [ MATCH "([/]boost[/][/])" : $(s) ]
+            if [ MATCH "([/]boost[/][/])" : $(source) ]
             {
-                s = [ MATCH "[/]boost[/][/](.*)" : $(s) ] ;
-                s = /boost/$(s) ;
+                s = [ MATCH "[/]boost[/][/](.*)" : $(source) ] ;
+                s = /boost/$(source) ;
             }
-            sources += $(s) ;
+            else if [ MATCH "([.][.][/][.][.]/.*/build)" : $(source) ]
+            {
+                source = [ MATCH "[.][.][/][.][.]/(.*)/build//(.*)" : $(source) ] ;
+                source = /boost/$(source[1])//$(source[2]) ;
+            }
+            sources += $(source) ;
         }
-        return [ __lib_target__ $(1) : $(sources) : $(3) : $(4) : $(5) ] ;
+        return [ __lib_target__ $(1) : $(sources) : $(3) : $(4) ] ;
     }
 }
 IMPORT : lib : : __lib_target__ ;
