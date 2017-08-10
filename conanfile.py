@@ -38,7 +38,7 @@ class boost(Generator):
         
         boost_generator = conan_file.deps_cpp_info["Boost.Generator"]
         boost_generator_root_path = boost_generator.rootpath
-        boost_generator_source_path = os.path.join(boost_generator_root_path, os.pardir, os.pardir, "source")
+        boost_generator_source_path = os.path.join(boost_generator_root_path, os.pardir, os.pardir, "export")
         
         template_file_path = os.path.join(boost_generator_source_path, "jamroot.template")
         boostcpp_file_path = os.path.join(boost_generator_source_path, "boostcpp.jam")
