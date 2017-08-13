@@ -1,19 +1,36 @@
+rule patch_references ( references * )
+{
+    local result ;
+    for ref in $(references)
+    {
+        if [ MATCH "([/]boost[/][/])" : $(ref) ]
+        {
+            ref = [ MATCH "(.*)[/]boost[/][/](.*)" : $(ref) ] ;
+            ref = $(ref[1])/boost/$(ref[2]) ;
+        }
+        else if [ MATCH "([.][.][/][.][.][/].*[/]build)[/][/]" : $(ref) ]
+        {
+            ref = [ MATCH "(.*)[.][.][/][.][.][/](.*)[/]build[/][/](.*)" : $(ref) ] ;
+            ref = $(ref[1])/boost/$(ref[2])//$(ref[3]) ;
+        }
+        else if [ MATCH "([.][.][/][.][.][/].*[/]build)" : $(ref) ]
+        {
+            ref = [ MATCH "(.*)[.][.][/][.][.][/](.*)[/]build" : $(ref) ] ;
+            ref = $(ref[1])/boost/$(ref[2]) ;
+        }
+        result += $(ref) ;
+    }
+    return $(result) ;
+}
+
 import modules ;
 
 import project ;
 rule project_find ( name : current-location )
 {
-    local caller = [ CALLER_MODULE ] ;
-    module $(caller)
-    {
-        local name = $(1) ;
-        if [ MATCH "([.][.][/][.][.]/.*/build)" : $(name) ]
-        {
-            name = [ MATCH "[.][.][/][.][.]/(.*)/build" : $(name) ] ;
-            name = /boost/$(name) ;
-        }
-        return [ __project_find__ $(name) : $(2) ] ;
-    }
+    return [ modules.call-in [ CALLER_MODULE ] :
+        __project_find__ [ patch_references $(name) ] : $(current-location)
+        ] ;
 }
 IMPORT project : find : : __project_find__ ;
 IMPORT $(__name__) : project_find : project : find ;
@@ -24,6 +41,7 @@ import print ;
 import build-system ;
 import targets ;
 import path ;
+import feature ;
 
 import boostcpp ;
 
@@ -76,34 +94,47 @@ module boostcpp
     }
 }
 
+rule lib_target_usage ( properties * )
+{
+    properties = [ patch_references $(properties) ] ;
+    local library = [ MATCH "CONAN_LIB_BUILD=(.*)" : $(properties:G=) ] ;
+    local libraries = [ feature.get-values <library> : $(properties) ] ;
+    if $(libraries)
+    {
+        libraries = [ MATCH "([/]boost[/].*)" : $(libraries) ] ;
+        if $(libraries)
+        {
+            LIBRARY_USAGE($(library)) = <library>$(libraries) ;
+        }
+    }
+}
+
 rule lib_target (
     name : sources * : requirements * : default-build * : usage-requirements * )
 {
+    sources = [ patch_references $(sources) ] ;
+    requirements = [ patch_references $(requirements) ] ;
+    usage-requirements = [ patch_references $(usage-requirements) ] ;
     local caller = [ CALLER_MODULE ] ;
-    module $(caller)
+    IMPORT $(__name__) : lib_target_usage : $(caller) : lib_target_usage ;
+    EXPORT $(caller) : lib_target_usage ;
+    local usage = $(usage-requirements) ;
+    local library = [ MATCH "($(LIBRARIES_BUILD:J=|))" : $(name) ] ;
+    if $(library)
     {
-        local sources ;
-        for source in $(2)
-        {
-            if [ MATCH "([/]boost[/][/])" : $(source) ]
-            {
-                source = [ MATCH "[/]boost[/][/](.*)" : $(source) ] ;
-                source = /boost/$(source) ;
-            }
-            else if [ MATCH "([.][.][/][.][.]/.*/build)" : $(source) ]
-            {
-                source = [ MATCH "[.][.][/][.][.]/(.*)/build//(.*)" : $(source) ] ;
-                source = /boost/$(source[1])//$(source[2]) ;
-            }
-            sources += $(source) ;
-        }
-        return [ __lib_target__ $(1) : $(sources) : $(3) : $(4) ] ;
+        usage += <conditional>@lib_target_usage ;
     }
+    # ECHO >>>>>>>>>> LIB $(name) :: $(sources) :: $(requirements)
+    #    :: $(default-build) :: $(usage) <define>CONAN_LIB_BUILD=$(library) ;
+    return [ modules.call-in $(caller) :
+        __lib_target__ $(name) : $(sources) : $(requirements)
+            : $(default-build) : $(usage) <define>CONAN_LIB_BUILD=$(library)
+        ] ;
 }
 IMPORT : lib : : __lib_target__ ;
 IMPORT $(__name__) : lib_target : : lib ;
 
-local LIBRARIES_BUILD = ;
+LIBRARIES_BUILD = ;
 for local library in $(LIBRARIES)
 {
     if [ path.exists $(library)/build ]
@@ -113,8 +144,6 @@ for local library in $(LIBRARIES)
     }
 }
 
-boostcpp.declare-targets $(LIBRARIES_BUILD) ;
-
 rule export-jamroot ( targets * : sources * : properties * )
 {
     print.output $(targets[1]) ;
@@ -123,9 +152,11 @@ rule export-jamroot ( targets * : sources * : properties * )
     local dollar = "\$" ;
     for local library in {{{libraries}}}
     {
+        local usage = "$(LIBRARY_USAGE($(library)):J= )" ;
         print.text "project.register-id /boost/$(library) : $(dollar)(__name__) ;" ;
-        print.text "lib boost_$(library) : : <name>boost_$(library) <search>. ;" ;
+        print.text "lib boost_$(library) : : <name>boost_$(library) <search>. : : $(usage:E=) ;" ;
     }
+    print.text "" ;
 }
 
 make jamroot.jam : : @export-jamroot ;
@@ -133,6 +164,8 @@ make jamroot.jam : : @export-jamroot ;
 install export-jamroot : jamroot.jam : <location>stage/lib ;
 
 {{{deps_info}}}
+
+boostcpp.declare-targets $(LIBRARIES_BUILD) ;
 
 rule post-build ( ok ? )
 {
