@@ -83,9 +83,10 @@ class boost(Generator):
                 deps_info.append(
                     "use-project /" + dep_name +  " : " + dep_libdir.replace('\\','/') + " ;")
                 try:
-                    dep_short_name = self.conanfile.deps_user_info[dep_name].lib_short_name
-                    deps_info.append(
-                        'LIBRARY_DIR(' + dep_short_name + ') = "' + dep_libdir.replace('\\','/') + '" ;')
+                    dep_short_names = self.conanfile.deps_user_info[dep_name].lib_short_names
+                    for dep_short_name in dep_short_names:
+                        deps_info.append(
+                            'LIBRARY_DIR(' + dep_short_name + ') = "' + dep_libdir.replace('\\','/') + '" ;')
                 except KeyError:
                     pass
 
