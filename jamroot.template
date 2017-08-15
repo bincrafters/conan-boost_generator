@@ -1,3 +1,6 @@
+DEP_INCLUDES = {{{deps.include_paths}}} ;
+LIBRARIES = {{{libraries}}} ;
+
 rule patch_references ( references * )
 {
     local result ;
@@ -18,12 +21,41 @@ rule patch_references ( references * )
             ref = [ MATCH "(.*)[.][.][/][.][.][/](.*)[/]build" : $(ref) ] ;
             ref = $(ref[1])/boost/$(ref[2]) ;
         }
+        else if [ MATCH "([.][.][/][.][.][/][a-z]+[/])" : $(ref) ]
+        {
+            ref = [ MATCH "[.][.][/][.][.][/](.*)" : $(ref) ] ;
+            ref = $(ref[1]) ;
+        }
         result += $(ref) ;
     }
     return $(result) ;
 }
 
 import modules ;
+rule modules_import ( module-names + : rules-opt * : rename-opt * )
+{
+    for local module-name in [ patch_references $(module-names) ]
+    {
+        local library-module = [ MATCH "([^/]+)[/](.*)" : $(module-name) ] ;
+        if $(LIBRARY_DIR($(library-module[1])))
+        {
+            local saved_b2_path = [ modules.peek : BOOST_BUILD_PATH ] ;
+            modules.poke : BOOST_BUILD_PATH : $(LIBRARY_DIR($(library-module[1]))) $(saved_b2_path) ;
+            modules.call-in [ CALLER_MODULE ] :
+                __modules_import__ $(library-module[2])
+                    : $(rules-opt) : $(rename-opt) ;
+            modules.poke : BOOST_BUILD_PATH : $(saved_b2_path) ;
+        }
+        else
+        {
+            modules.call-in [ CALLER_MODULE ] :
+                __modules_import__ $(module-name) : $(rules-opt) : $(rename-opt) ;
+        }
+    }
+}
+IMPORT modules : import : : __modules_import__ ;
+IMPORT $(__name__) : modules_import : modules : import ;
+EXPORT modules : import ;
 
 import project ;
 rule project_find ( name : current-location )
@@ -50,9 +82,6 @@ constant BOOST_VERSION : {{{boost_version}}} ;
 constant BOOST_JAMROOT_MODULE : $(__name__) ;
 
 boostcpp.set-version $(BOOST_VERSION) ;
-
-local DEP_INCLUDES = {{{deps.include_paths}}} ;
-local LIBRARIES = {{{libraries}}} ;
 
 project boost
 :   requirements

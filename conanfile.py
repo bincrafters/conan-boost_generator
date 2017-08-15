@@ -48,11 +48,15 @@ class boost(Generator):
 
         deps_info = []
         for dep_name, dep_cpp_info in self.deps_build_info.dependencies:
-            deps_libdir = os.path.join(dep_cpp_info.rootpath, dep_cpp_info.libdirs[0])
-            if os.path.isfile(os.path.join(deps_libdir,"jamroot.jam")):
+            dep_libdir = os.path.join(dep_cpp_info.rootpath, dep_cpp_info.libdirs[0])
+            if os.path.isfile(os.path.join(dep_libdir,"jamroot.jam")):
                 deps_info.append(
                     "use-project /" + dep_name +
-                    " : " + deps_libdir.replace('\\','/') + " ;")
+                    " : " + dep_libdir.replace('\\','/') + " ;")
+                if hasattr(self.conanfile.deps_user_info[dep_name], 'name'):
+                    dep_short_name = self.conanfile.deps_user_info[dep_name].name
+                    deps_info.append(
+                        'LIBRARY_DIR(' + dep_short_name + ') = "' + dep_libdir.replace('\\','/') + '" ;')
         deps_info = "\n".join(deps_info)
 
         if hasattr(conan_file, 'lib_short_name'):
