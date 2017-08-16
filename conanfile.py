@@ -83,8 +83,7 @@ class boost(Generator):
                 deps_info.append(
                     "use-project /" + dep_name +  " : " + dep_libdir.replace('\\','/') + " ;")
                 try:
-                    dep_short_names_str = self.conanfile.deps_user_info[dep_name].lib_short_names
-                    dep_short_names = dep_short_names_str.split(",")
+                    dep_short_names = self.conanfile.deps_user_info[dep_name].lib_short_names.split(",")
                     for dep_short_name in dep_short_names:
                         print("dep_short_name = " + dep_short_name)
                         deps_info.append(
