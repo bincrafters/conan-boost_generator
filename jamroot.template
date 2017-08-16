@@ -104,6 +104,11 @@ rule tag ( name : type ? : property-set )
     return [ boostcpp.tag $(name) : $(type) : $(property-set) ] ;
 }
 
+rule python-tag ( name : type ? : property-set )
+{
+    return [ boostcpp.python-tag $(name) : $(type) : $(property-set) ] ;
+}
+
 rule boost-install ( libraries * )
 {
     install stage : $(libraries) : <location>output ;
