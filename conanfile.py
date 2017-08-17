@@ -14,7 +14,7 @@ class BoostGenerator(ConanFile):
     description = "Conan build generator for boost libraries http://www.boost.org/doc/libs/1_64_0/libs/libraries.htm"
     license = "BSL"
     boost_version = "1.64.0"
-    exports = "boostcpp.jam", "jamroot.template"
+    exports = "boostcpp.jam", "jamroot.template", "project-config.template.jam"
     requires = "Boost.Build/1.64.0@bincrafters/testing"
     
        
@@ -34,6 +34,7 @@ class boost(Generator):
         libraries_to_build = " ".join(self.conanfile.lib_short_names)
 
         jamroot_content = self.get_template_content() \
+            .replace("{{{toolset}}}", self.b2_toolset()) \
             .replace("{{{libraries}}}", libraries_to_build) \
             .replace("{{{boost_version}}}", self.conanfile.version) \
             .replace("{{{deps.include_paths}}}", jam_include_paths) \
@@ -49,7 +50,7 @@ class boost(Generator):
             "jamroot" : jamroot_content,
             "boostcpp.jam" : self.get_boostcpp_content(), 
             "boost-build.jam" : self.get_boost_build_jam_content(),
-            "project-config.jam" : ""
+            "project-config.jam" : self.get_project_config_content()
         }
 
     def get_boost_build_jam_content(self):
@@ -93,6 +94,12 @@ class boost(Generator):
 
         deps_info = "\n".join(deps_info)
         return deps_info
+
+    def get_project_config_content(self):
+        project_config_content_file_path = os.path.join(self.get_boost_generator_source_path(), "project-config.template.jam")
+        project_config_content = load(project_config_content_file_path)
+        return project_config_content \
+            .replace("{{{toolset}}}", self.b2_toolset())
         
     def b2_os(self):
         b2_os = {
@@ -132,3 +139,11 @@ class boost(Generator):
             return "debug"
         else:
             return "release"
+    
+    def b2_toolset(self):
+        b2_toolsets = {
+          'gcc': 'gcc',
+          'Visual Studio': 'msvc',
+          'clang': 'clang',
+          'apple-clang': 'clang'}
+        return b2_toolsets[str(self.settings.compiler)]
