@@ -121,6 +121,7 @@ project boost
     <target-os>{{{os}}}
     <address-model>{{{address_model}}}
     <architecture>{{{architecture}}}
+    <toolset>{{{toolset}}}
 ;
 
 rule tag ( name : type ? : property-set )
