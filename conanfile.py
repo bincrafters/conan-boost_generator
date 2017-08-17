@@ -16,8 +16,10 @@ class BoostGenerator(ConanFile):
     boost_version = "1.64.0"
     exports = "boostcpp.jam", "jamroot.template", "project-config.template.jam"
     requires = "Boost.Build/1.64.0@bincrafters/testing"
-    
-       
+
+    def package_info(self):
+        self.user_info.b2_command = "b2 -j4 -a --hash=yes"
+
 # Below is the actual generator code
 
 
@@ -49,16 +51,8 @@ class boost(Generator):
         return {
             "jamroot" : jamroot_content,
             "boostcpp.jam" : self.get_boostcpp_content(), 
-            "boost-build.jam" : self.get_boost_build_jam_content(),
             "project-config.jam" : self.get_project_config_content()
         }
-
-    def get_boost_build_jam_content(self):
-        boost_build = self.conanfile.deps_cpp_info["Boost.Build"]
-        boost_build_root_path = boost_build.rootpath
-        boost_build_kernel_path = os.path.join(boost_build_root_path, "share/boost-build/src/kernel").replace('\\','/')
-        boost_build_jam_content = 'boost-build "' + boost_build_kernel_path + '" ;'
-        return boost_build_jam_content
 
     def get_template_content(self):
         template_file_path = os.path.join(self.get_boost_generator_source_path(), "jamroot.template")
@@ -86,7 +80,6 @@ class boost(Generator):
                 try:
                     dep_short_names = self.conanfile.deps_user_info[dep_name].lib_short_names.split(",")
                     for dep_short_name in dep_short_names:
-                        print("dep_short_name = " + dep_short_name)
                         deps_info.append(
                             'LIBRARY_DIR(' + dep_short_name + ') = "' + dep_libdir.replace('\\','/') + '" ;')
                 except KeyError:
