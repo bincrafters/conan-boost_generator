@@ -85,7 +85,6 @@ class boost(Generator):
                 try:
                     dep_short_names = self.conanfile.deps_user_info[dep_name].lib_short_names.split(",")
                     for dep_short_name in dep_short_names:
-                        print("dep_short_name = " + dep_short_name)
                         deps_info.append(
                             'LIBRARY_DIR(' + dep_short_name + ') = "' + dep_libdir.replace('\\','/') + '" ;')
                 except KeyError:
