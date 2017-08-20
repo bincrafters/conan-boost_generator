@@ -51,7 +51,8 @@ class boost(Generator):
         return {
             "jamroot" : jamroot_content,
             "boostcpp.jam" : self.get_boostcpp_content(), 
-            "project-config.jam" : self.get_project_config_content()
+            "project-config.jam" : self.get_project_config_content(),
+            "short_path.cmd" : "@echo off\nECHO %~s1"
         }
 
     def get_template_content(self):
