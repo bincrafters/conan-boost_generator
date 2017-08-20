@@ -71,6 +71,24 @@ IMPORT modules : import : : __modules_import__ ;
 IMPORT $(__name__) : modules_import : modules : import ;
 EXPORT modules : import ;
 
+if NT = [ modules.peek : OS ]
+{
+    rule path_native_nt ( path )
+    {
+        local native = [ __path_native_nt__ $(path) ] ;
+        if [ path.is-rooted $(path) ]
+        {
+            native = [ SHELL "short_path \"$(native)\"" ] ;
+            native = [ MATCH "([^
+]*)" : $(native) ] ;
+        }
+        return $(native) ;
+    }
+    IMPORT path : native-NT : : __path_native_nt__ ;
+    IMPORT $(__name__) : path_native_nt : path : native ;
+    EXPORT path : native ;
+}
+
 import project ;
 rule project_find ( name : current-location )
 {
@@ -98,6 +116,7 @@ import targets ;
 import path ;
 import feature ;
 import boostcpp ;
+import os ;
 
 HERE = [ path.parent [ path.root [ path.make [ modules.binding $(__name__) ] ] [ path.pwd ] ] ] ;
 
