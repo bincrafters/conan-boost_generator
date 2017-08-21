@@ -1,5 +1,6 @@
 from conans.model.conan_generator import Generator
 from conans import ConanFile, os, tools, load
+from future.backports.test.support import requires_freebsd_version
 
 # This is the normal packaging info since generators
 # get published just like other packages. Although
@@ -48,7 +49,8 @@ class boost(Generator):
             .replace("{{{name}}}", self.conanfile.name) \
             .replace("{{{link}}}", self.b2_link) \
             .replace("{{{runtime_link}}}", self.b2_runtime_link) \
-            .replace("{{{toolset_version}}}", self.b2_toolset_version)
+            .replace("{{{toolset_version}}}", self.b2_toolset_version) \
+            .replace("{{{toolset_exec}}}", self.b2_toolset_exec)
             
            
         return {
@@ -97,9 +99,10 @@ class boost(Generator):
         project_config_content = load(project_config_content_file_path)
         return project_config_content \
             .replace("{{{toolset}}}", self.b2_toolset) \
-            .replace("{{{toolset_version}}}", self.b2_toolset_version)
+            .replace("{{{toolset_version}}}", self.b2_toolset_version) \
+            .replace("{{{toolset_exec}}}", self.b2_toolset_exec)
+
     @property
-        
     def b2_os(self):
         b2_os = {
             'Windows': 'windows',
@@ -158,6 +161,29 @@ class boost(Generator):
                 return "14.1"
             else:
                 return str(self.settings.compiler.version) + ".0"
+        else:
+            return "$(DEFAULT)" ;
+    
+    @property
+    def b2_toolset_exec(self):
+        if self.b2_os == 'linux' or self.b2_os == 'freebsd' or self.b2_os == 'solaris' or self.b2_os == 'darwin':
+            version = str(self.settings.compiler.version).split('.')
+            result_x = self.b2_toolset + "-" + version[0]
+            result_xy = result_x + version[1] if version[1] != '0' else ''
+            class dev_null(object):
+                def write(self, message):
+                    pass
+            try:
+                self.conanfile.run(result_xy + " --version", output=dev_null())
+                return result_xy
+            except:
+                pass
+            try:
+                self.conanfile.run(result_x + " --version", output=dev_null())
+                return result_x
+            except:
+                pass
+            return "$(DEFAULT)" ;
         else:
             return "$(DEFAULT)" ;
 
