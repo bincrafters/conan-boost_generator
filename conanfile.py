@@ -1,6 +1,5 @@
 from conans.model.conan_generator import Generator
 from conans import ConanFile, os, tools, load
-from future.backports.test.support import requires_freebsd_version
 
 # This is the normal packaging info since generators
 # get published just like other packages. Although
@@ -162,7 +161,7 @@ class boost(Generator):
             else:
                 return str(self.settings.compiler.version) + ".0"
         else:
-            return "$(DEFAULT)" ;
+            return "$(DEFAULT)"
     
     @property
     def b2_toolset_exec(self):
@@ -183,9 +182,9 @@ class boost(Generator):
                 return result_x
             except:
                 pass
-            return "$(DEFAULT)" ;
+            return "$(DEFAULT)"
         else:
-            return "$(DEFAULT)" ;
+            return "$(DEFAULT)"
 
     @property
     def b2_link(self):
