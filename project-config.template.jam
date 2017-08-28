@@ -1,5 +1,5 @@
 import feature ;
 if ! {{{toolset}}} in [ feature.values <toolset> ]
 {
-    using {{{toolset}}} ;
+    using {{{toolset}}} : {{{toolset_version}}} : {{{toolset_exec}}} ;
 }

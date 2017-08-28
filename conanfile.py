@@ -18,7 +18,7 @@ class BoostGenerator(ConanFile):
     requires = "Boost.Build/1.64.0@bincrafters/testing"
 
     def package_info(self):
-        self.user_info.b2_command = "b2 -j4 -a --hash=yes"
+        self.user_info.b2_command = "b2 -j%s -a --hash=yes --debug-configuration"%(tools.cpu_count())
 
 # Below is the actual generator code
 
@@ -36,16 +36,20 @@ class boost(Generator):
         libraries_to_build = " ".join(self.conanfile.lib_short_names)
 
         jamroot_content = self.get_template_content() \
-            .replace("{{{toolset}}}", self.b2_toolset()) \
+            .replace("{{{toolset}}}", self.b2_toolset) \
             .replace("{{{libraries}}}", libraries_to_build) \
             .replace("{{{boost_version}}}", self.conanfile.version) \
             .replace("{{{deps.include_paths}}}", jam_include_paths) \
-            .replace("{{{os}}}", self.b2_os()) \
-            .replace("{{{address_model}}}", self.b2_address_model()) \
-            .replace("{{{architecture}}}", self.b2_architecture()) \
+            .replace("{{{os}}}", self.b2_os) \
+            .replace("{{{address_model}}}", self.b2_address_model) \
+            .replace("{{{architecture}}}", self.b2_architecture) \
             .replace("{{{deps_info}}}", self.get_deps_info_for_jamfile()) \
-            .replace("{{{variant}}}", self.b2_variant()) \
-            .replace("{{{name}}}", self.conanfile.name)
+            .replace("{{{variant}}}", self.b2_variant) \
+            .replace("{{{name}}}", self.conanfile.name) \
+            .replace("{{{link}}}", self.b2_link) \
+            .replace("{{{runtime_link}}}", self.b2_runtime_link) \
+            .replace("{{{toolset_version}}}", self.b2_toolset_version) \
+            .replace("{{{toolset_exec}}}", self.b2_toolset_exec)
             
            
         return {
@@ -93,8 +97,11 @@ class boost(Generator):
         project_config_content_file_path = os.path.join(self.get_boost_generator_source_path(), "project-config.template.jam")
         project_config_content = load(project_config_content_file_path)
         return project_config_content \
-            .replace("{{{toolset}}}", self.b2_toolset())
-        
+            .replace("{{{toolset}}}", self.b2_toolset) \
+            .replace("{{{toolset_version}}}", self.b2_toolset_version) \
+            .replace("{{{toolset_exec}}}", self.b2_toolset_exec)
+
+    @property
     def b2_os(self):
         b2_os = {
             'Windows': 'windows',
@@ -106,6 +113,7 @@ class boost(Generator):
             'SunOS': 'solaris'}
         return b2_os[str(self.settings.os)]
 
+    @property
     def b2_address_model(self):
         b2_address_model = {
             'x86': '32',
@@ -118,6 +126,7 @@ class boost(Generator):
             'armv8': '64'}
         return b2_address_model[str(self.settings.arch)]
 
+    @property
     def b2_architecture(self):
         if str(self.settings.arch).startswith('x86'):
             return 'x86'
@@ -128,12 +137,14 @@ class boost(Generator):
         else:
             return ""
     
+    @property
     def b2_variant(self):
         if str(self.settings.build_type) == "Debug":
             return "debug"
         else:
             return "release"
     
+    @property
     def b2_toolset(self):
         b2_toolsets = {
           'gcc': 'gcc',
@@ -141,3 +152,51 @@ class boost(Generator):
           'clang': 'clang',
           'apple-clang': 'clang'}
         return b2_toolsets[str(self.settings.compiler)]
+    
+    @property
+    def b2_toolset_version(self):
+        if self.settings.compiler == "Visual Studio":
+            if self.settings.compiler.version == "15":
+                return "14.1"
+            else:
+                return str(self.settings.compiler.version) + ".0"
+        else:
+            return "$(DEFAULT)"
+    
+    @property
+    def b2_toolset_exec(self):
+        if self.b2_os == 'linux' or self.b2_os == 'freebsd' or self.b2_os == 'solaris' or self.b2_os == 'darwin':
+            version = str(self.settings.compiler.version).split('.')
+            result_x = self.b2_toolset + "-" + version[0]
+            result_xy = result_x + version[1] if version[1] != '0' else ''
+            class dev_null(object):
+                def write(self, message):
+                    pass
+            try:
+                self.conanfile.run(result_xy + " --version", output=dev_null())
+                return result_xy
+            except:
+                pass
+            try:
+                self.conanfile.run(result_x + " --version", output=dev_null())
+                return result_x
+            except:
+                pass
+            return "$(DEFAULT)"
+        else:
+            return "$(DEFAULT)"
+
+    @property
+    def b2_link(self):
+        shared = False
+        try:
+            shared = self.conanfile.options.shared
+        except:
+            pass
+        return "shared" if shared else "static"
+    
+    @property
+    def b2_runtime_link(self):
+        if self.settings.compiler == "Visual Studio" and self.settings.compiler.runtime:
+            return "static" if "MT" in str(self.settings.compiler.runtime) else "$(DEFAULT)"
+        return "$(DEFAULT)"

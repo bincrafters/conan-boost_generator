@@ -141,6 +141,8 @@ project boost
     <address-model>{{{address_model}}}
     <architecture>{{{architecture}}}
     <toolset>{{{toolset}}}
+    <link>{{{link}}}
+    <runtime-link>{{{runtime_link}}}
 ;
 
 rule tag ( name : type ? : property-set )
