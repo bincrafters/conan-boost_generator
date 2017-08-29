@@ -1,5 +1,6 @@
 from conans.model.conan_generator import Generator
 from conans import ConanFile, os, tools, load
+import glob
 
 # This is the normal packaging info since generators
 # get published just like other packages. Although
@@ -183,6 +184,15 @@ class boost(Generator):
             except:
                 pass
             return "$(DEFAULT)"
+        elif self.b2_os == "windows":
+            vs_root = tools.vs_installation_path(str(self.settings.compiler.version))
+            cl_exe = \
+                glob.glob(os.path.join(vs_root,"VC","Tools","MSVC","*","bin","*","*","cl.exe")) + \
+                glob.glob(os.path.join(vs_root,"VC","bin","cl.exe"))
+            if len(cl_exe) > 0:
+                return cl_exe[0].replace("\\","/")
+            else:
+                return "$(DEFAULT)"
         else:
             return "$(DEFAULT)"
 
