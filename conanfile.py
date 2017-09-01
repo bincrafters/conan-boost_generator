@@ -27,7 +27,7 @@ class boost(Generator):
    
     @property
     def filename(self):
-        pass #in this case, filename defined in return value of content method
+        pass  # in this case, filename defined in return value of content method
 
     @property
     def content(self):
