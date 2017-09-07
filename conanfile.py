@@ -19,7 +19,7 @@ class BoostGenerator(ConanFile):
     requires = "Boost.Build/1.64.0@bincrafters/testing"
 
     def package_info(self):
-        self.user_info.b2_command = "b2 -j%s -a --hash=yes --debug-configuration"%(tools.cpu_count())
+        self.user_info.b2_command = "b2 -d+2 -j%s -a --hash=yes --debug-configuration"%(tools.cpu_count())
 
 # Below is the actual generator code
 
@@ -100,7 +100,11 @@ class boost(Generator):
         return project_config_content \
             .replace("{{{toolset}}}", self.b2_toolset) \
             .replace("{{{toolset_version}}}", self.b2_toolset_version) \
-            .replace("{{{toolset_exec}}}", self.b2_toolset_exec)
+            .replace("{{{toolset_exec}}}", self.b2_toolset_exec) \
+            .replace("{{{zlib_lib_paths}}}", self.zlib_lib_paths) \
+            .replace("{{{zlib_include_paths}}}", self.zlib_include_paths) \
+            .replace("{{{bzip2_lib_paths}}}", self.bzip2_lib_paths) \
+            .replace("{{{bzip2_include_paths}}}", self.bzip2_include_paths)
 
     @property
     def b2_os(self):
@@ -210,3 +214,39 @@ class boost(Generator):
         if self.settings.compiler == "Visual Studio" and self.settings.compiler.runtime:
             return "static" if "MT" in str(self.settings.compiler.runtime) else "$(DEFAULT)"
         return "$(DEFAULT)"
+    
+    @property
+    def zlib_lib_paths(self):
+        try:
+            if self.conanfile.options.use_zlib:
+                return '"{0}"'.format('" "'.join(self.deps_build_info["zlib"].lib_paths))
+        except:
+            pass
+        return ""
+    
+    @property
+    def zlib_include_paths(self):
+        try:
+            if self.conanfile.options.use_zlib:
+                return '"{0}"'.format('" "'.join(self.deps_build_info["zlib"].include_paths))
+        except:
+            pass
+        return ""
+    
+    @property
+    def bzip2_lib_paths(self):
+        try:
+            if self.conanfile.options.use_zlib:
+                return '"{0}"'.format('" "'.join(self.deps_build_info["bzip2"].lib_paths))
+        except:
+            pass
+        return ""
+    
+    @property
+    def bzip2_include_paths(self):
+        try:
+            if self.conanfile.options.use_bzip2:
+                return '"{0}"'.format('" "'.join(self.deps_build_info["bzip2"].include_paths))
+        except:
+            pass
+        return ""
