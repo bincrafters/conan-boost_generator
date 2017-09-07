@@ -19,7 +19,7 @@ class BoostGenerator(ConanFile):
     requires = "Boost.Build/1.64.0@bincrafters/testing"
 
     def package_info(self):
-        self.user_info.b2_command = "b2 -d+2 -j%s -a --hash=yes --debug-configuration"%(tools.cpu_count())
+        self.user_info.b2_command = "b2 -j%s -a --hash=yes --debug-configuration"%(tools.cpu_count())
 
 # Below is the actual generator code
 
