@@ -50,7 +50,8 @@ class boost(Generator):
             .replace("{{{link}}}", self.b2_link) \
             .replace("{{{runtime_link}}}", self.b2_runtime_link) \
             .replace("{{{toolset_version}}}", self.b2_toolset_version) \
-            .replace("{{{toolset_exec}}}", self.b2_toolset_exec)
+            .replace("{{{toolset_exec}}}", self.b2_toolset_exec) \
+            .replace("{{{libcxx}}}", self.b2_libcxx)
             
            
         return {
@@ -250,3 +251,17 @@ class boost(Generator):
         except:
             pass
         return ""
+    
+    @property
+    def b2_libcxx(self):
+        if self.b2_toolset == 'gcc':
+            if str(self.settings.compiler.libcxx) == 'libstdc++11':
+                return '<cflags>-std=c++11 <linkflags>-std=c++11'
+        elif self.b2_toolset == 'clang':
+            if str(self.settings.compiler.libcxx) == 'libc++':
+                return '<cflags>-stdlib=libc++ <linkflags>-stdlib=libc++'
+            elif str(self.settings.compiler.libcxx) == 'libstdc++11':
+                return '<cflags>-stdlib=libstdc++ <linkflags>-stdlib=libstdc++ <cflags>-std=c++11 <linkflags>-std=c++11'
+            else:
+                return '<cflags>-stdlib=libstdc++ <linkflags>-stdlib=libstdc++'
+        return ''
