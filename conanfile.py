@@ -10,11 +10,10 @@ import glob
 
 class BoostGenerator(ConanFile):
     name = "Boost.Generator"
-    version = "0.0.1"
+    version = "1.64.0"
     url = "https://github.com/bincrafters/conan-boost-generator"
     description = "Conan build generator for boost libraries http://www.boost.org/doc/libs/1_64_0/libs/libraries.htm"
     license = "BSL"
-    boost_version = "1.64.0"
     exports = "boostcpp.jam", "jamroot.template", "project-config.template.jam"
     requires = "Boost.Build/1.64.0@bincrafters/testing"
 
