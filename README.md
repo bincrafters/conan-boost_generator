@@ -1,6 +1,6 @@
 ## A Conan.io Generator for the Boost C++ Libraries.
 
-[Conan.io](https://conan.io) package for [Boost Libraries](http://www.boost.org/doc/libs/1_64_0/libs/libraries.htm).
+[Conan.io](https://conan.io) package for [Boost Libraries](http://www.boost.org/doc/libs/1_65_1/libs/libraries.htm).
 
 The packages generated with this **conanfile** can be found in [Bintray](https://bintray.com/bincrafters/public-conan/Boost.Generator%3Abincrafters).
 
