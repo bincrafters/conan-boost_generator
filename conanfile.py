@@ -15,7 +15,7 @@ class BoostGenerator(ConanFile):
     description = "Conan build generator for boost libraries http://www.boost.org/doc/libs/1_65_1/libs/libraries.htm"
     license = "BSL"
     exports = "boostcpp.jam", "jamroot.template", "project-config.template.jam"
-    requires = "Boost.Build/1.65.1@bincrafters/testing"
+    requires = "Boost.Build/1.65.1@bincrafters/stable"
 
     def package_info(self):
         self.user_info.b2_command = "b2 -j%s -a --hash=yes --debug-configuration"%(tools.cpu_count())
