@@ -35,7 +35,7 @@ Generators are distributed just like other packages, and used in other packages 
 The following should exist in `conanfile.py` for any Boost library which is not a header-only library, and needs to be built. 
 
 ```
-	build_requires = "Boost.Generator/0.0.1@bincrafters/testing"
+	build_requires = "Boost.Generator/1.65.1@bincrafters/testing"
     generators = "boost"
 ```
 	
@@ -55,7 +55,7 @@ The following command both runs all the steps of the conan file, and publishes t
 
 ## Upload to bintray 
 
-    $ conan upload --all --remote bincrafters Boost.Generator/0.0.1@bincrafters/testing
+    $ conan upload --all --remote bincrafters Boost.Generator/1.65.1@bincrafters/testing
 
 ### License
 [Boost](LICENSE)
