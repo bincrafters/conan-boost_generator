@@ -1,5 +1,6 @@
 from conans.model.conan_generator import Generator
 from conans import ConanFile, os, tools, load
+import glob
 
 # This is the normal packaging info since generators
 # get published just like other packages. Although
@@ -190,21 +191,21 @@ class boost(Generator):
                 pass
             return "$(DEFAULT)"
         elif self.b2_os == "windows":
-            return self.win_get_cl_path or "$(DEFAULT)"
+            return win_cl_exe
         else:
             return "$(DEFAULT)"
 
     @property
-    def win_get_cl_path(self):
+    def win_cl_exe(self):
         vs_root = tools.vs_installation_path(str(self.settings.compiler.version))
-        if vs_root:
-            cl_path_1 = os.path.join(vs_root, "VC", "Tools", "MSVC", "*", "bin", "*", "*", "cl.exe")
-            if os.path.isfile(cl_path_1):
-                return cl_path_1.replace("\\", "/")
-            else:
-                cl_path_2 = os.path.join(vs_root, "VC", "bin", "cl.exe")
-                if os.path.isfile(cl_path_2):
-                    return cl_path_2.replace("\\", "/")
+        cl_exe = \
+            glob.glob(os.path.join(vs_root,"VC","Tools","MSVC","*","bin","*","*","cl.exe")) + \
+            glob.glob(os.path.join(vs_root,"VC","bin","cl.exe"))
+        if cl_exe:
+            return cl_exe[0].replace("\\","/")
+        else:
+            return "$(DEFAULT)"
+
 
     @property
     def b2_link(self):
