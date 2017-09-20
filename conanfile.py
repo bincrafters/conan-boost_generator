@@ -1,6 +1,5 @@
 from conans.model.conan_generator import Generator
 from conans import ConanFile, os, tools, load
-import glob
 
 # This is the normal packaging info since generators
 # get published just like other packages. Although
