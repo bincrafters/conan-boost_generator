@@ -191,16 +191,21 @@ class boost(Generator):
                 pass
             return "$(DEFAULT)"
         elif self.b2_os == "windows":
-            vs_root = tools.vs_installation_path(str(self.settings.compiler.version))
-            cl_exe = \
-                glob.glob(os.path.join(vs_root,"VC","Tools","MSVC","*","bin","*","*","cl.exe")) + \
-                glob.glob(os.path.join(vs_root,"VC","bin","cl.exe"))
-            if len(cl_exe) > 0:
-                return cl_exe[0].replace("\\","/")
-            else:
-                return "$(DEFAULT)"
+            return self.win_get_cl_path or "$(DEFAULT)"
         else:
             return "$(DEFAULT)"
+
+    @property
+    def win_get_cl_path(self):
+        vs_root = tools.vs_installation_path(str(self.settings.compiler.version))
+        if vs_root:
+            cl_path_1 = os.path.join(vs_root, "VC", "Tools", "MSVC", "*", "bin", "*", "*", "cl.exe")
+            if os.path.isfile(cl_path_1):
+                return cl_path_1.replace("\\", "/")
+            else:
+                cl_path_2 = os.path.join(vs_root, "VC", "bin", "cl.exe")
+                if os.path.isfile(cl_path_2):
+                    return cl_path_2.replace("\\", "/")
 
     @property
     def b2_link(self):
