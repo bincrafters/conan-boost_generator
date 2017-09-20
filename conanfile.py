@@ -191,7 +191,7 @@ class boost(Generator):
                 pass
             return "$(DEFAULT)"
         elif self.b2_os == "windows":
-            return win_cl_exe
+            return self.win_cl_exe
         else:
             return "$(DEFAULT)"
 
