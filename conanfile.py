@@ -191,22 +191,20 @@ class boost(Generator):
                 pass
             return "$(DEFAULT)"
         elif self.b2_os == "windows":
-            return self.win_cl_exe
+            return self.win_cl_exe or "$(DEFAULT)"
         else:
             return "$(DEFAULT)"
 
     @property
     def win_cl_exe(self):
         vs_root = tools.vs_installation_path(str(self.settings.compiler.version))
-        cl_exe = \
-            glob.glob(os.path.join(vs_root,"VC","Tools","MSVC","*","bin","*","*","cl.exe")) + \
-            glob.glob(os.path.join(vs_root,"VC","bin","cl.exe"))
-        if cl_exe:
-            return cl_exe[0].replace("\\","/")
-        else:
-            return "$(DEFAULT)"
-
-
+        if vs_root:
+            cl_exe = \
+                glob.glob(os.path.join(vs_root,"VC","Tools","MSVC","*","bin","*","*","cl.exe")) + \
+                glob.glob(os.path.join(vs_root,"VC","bin","cl.exe"))
+            if cl_exe:
+                return cl_exe[0].replace("\\","/")
+                
     @property
     def b2_link(self):
         shared = False
