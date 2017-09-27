@@ -51,7 +51,9 @@ class boost(Generator):
             .replace("{{{runtime_link}}}", self.b2_runtime_link) \
             .replace("{{{toolset_version}}}", self.b2_toolset_version) \
             .replace("{{{toolset_exec}}}", self.b2_toolset_exec) \
-            .replace("{{{libcxx}}}", self.b2_libcxx)
+            .replace("{{{libcxx}}}", self.b2_libcxx) \
+            .replace("{{{binary_format}}}", self.b2_binary_format) \
+            .replace("{{{abi}}}", self.b2_abi)
             
            
         return {
@@ -133,6 +135,32 @@ class boost(Generator):
             'armv7hf': '32',
             'armv8': '64'}
         return b2_address_model[str(self.settings.arch)]
+
+    @property
+    def b2_binary_format(self):
+        if self.settings.os == "iOS" or self.settings.os == "Macos":
+            return "mach-o"
+        elif self.settings.os == "Android" or self.settings.os == "Linux":
+            return "elf"
+        elif self.settings.os == "Windows":
+            return  "pe"
+        else:
+            return ""
+
+    @property
+    def b2_abi(self):
+        if str(self.settings.arch).startswith('x86'):
+            if self.settings.os == "Windows":
+                return "ms"
+            else:
+                return "sysv"
+        elif str(self.settings.arch).startswith('ppc'):
+            return "sysv"
+        elif str(self.settings.arch).startswith('arm'):
+            return "aapcs"
+        else:
+            return ""
+
 
     @property
     def b2_architecture(self):
