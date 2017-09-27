@@ -142,8 +142,6 @@ project boost
     <toolset>{{{toolset}}}
     <link>{{{link}}}
     <runtime-link>{{{runtime_link}}}
-    <binary-format>{{{binary_format}}}
-    <abi>{{{abi}}}
 ;
 
 rule tag ( name : type ? : property-set )
