@@ -160,6 +160,13 @@ rule boost-install ( libraries * )
     module [ CALLER_MODULE ] { explicit stage ; }
 }
 
+rule boost-lib ( name : sources * : requirements * : default-build * : usage-requirements * )
+{
+    name = boost_$(name) ;
+    lib $(name) : $(sources) : $(requirements) : $(default-build) : $(usage-requirements) ;
+    boost-install $(name) ;
+}
+
 module boostcpp
 {
     IMPORT alias : alias : boostcpp : __alias__ ;
