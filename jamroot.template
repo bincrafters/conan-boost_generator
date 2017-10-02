@@ -126,6 +126,8 @@ constant BOOST_JAMROOT_MODULE : $(__name__) ;
 
 boostcpp.set-version $(BOOST_VERSION) ;
 
+local LIBPATH = {{{libpath}}} ;
+
 project boost
 :   requirements
     <define>BOOST_ALL_NO_LIB=1
@@ -133,6 +135,9 @@ project boost
     <link>shared,<runtime-link>static:<build>no
     <include>$(DEP_INCLUDES)
     <include>$(LIBRARIES)/include
+    <target-os>darwin:<cxxflags>-std=c++11
+    <target-os>darwin:<linkflags>-std=c++11
+    <library-path>$(LIBPATH)
     {{{libcxx}}}
 :   build-dir bin
 :   default-build {{{variant}}}

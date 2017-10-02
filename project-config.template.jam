@@ -24,7 +24,9 @@ else
     modules.poke : NO_BZIP2 : 1 ;
 }
 local python_exec = {{{python_exec}}} ;
+local python_include = {{{python_include}}} ;
+local python_lib = {{{python_lib}}} ;
 if $(python_exec)
 {
-    using python : {{{python_version}}} : $(python_exec) ;
+    using python : {{{python_version}}} : $(python_exec) : $(python_include) : $(python_lib) ;
 }
