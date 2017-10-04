@@ -1,6 +1,7 @@
 from conans.model.conan_generator import Generator
 from conans import ConanFile, os, tools, load
 import glob
+import subprocess
 
 # This is the normal packaging info since generators
 # get published just like other packages. Although
@@ -51,9 +52,12 @@ class boost(Generator):
             .replace("{{{toolset_version}}}", self.b2_toolset_version) \
             .replace("{{{toolset_exec}}}", self.b2_toolset_exec) \
             .replace("{{{libcxx}}}", self.b2_libcxx) \
-            .replace("{{{libpath}}}", self.b2_icu_lib_paths)
-            
-           
+            .replace("{{{libpath}}}", self.b2_icu_lib_paths) \
+            .replace("{{{arch_flags}}}", self.b2_arch_flags) \
+            .replace("{{{isysroot}}}", self.b2_isysroot) \
+            .replace("{{{fpic}}}", self.b2_fpic)
+
+
         return {
             "jamroot" : jamroot_content,
             "boostcpp.jam" : self.get_boostcpp_content(), 
@@ -339,3 +343,54 @@ class boost(Generator):
         except:
             pass
         return ""
+
+    @property
+    def apple_arch(self):
+        if self.settings.arch == "armv7":
+            return "armv7"
+        elif self.settings.arch == "armv8":
+            return "arm64"
+        elif self.settings.arch == "x86":
+            return "i386"
+        elif self.settings.arch == "x86_64":
+            return "x86_64"
+        else:
+            return None
+
+    @property
+    def apple_sdk(self):
+        if self.settings.os == "Macos":
+            return "macosx"
+        elif self.settings.os == "iOS":
+            if str(self.settings.arch).startswith('x86'):
+                return "iphonesimulator"
+            elif str(self.settings.arch).startswith('arm'):
+                return "iphoneos"
+            else:
+                return None
+        return None
+
+    def command_output(self, command):
+        return subprocess.check_output(command, shell=False).strip()
+
+    @property
+    def apply_isysroot(self):
+        return self.command_output(['xcrun', '--show-sdk-path', '-sdk', self.apple_sdk])
+
+    @property
+    def b2_arch_flags(self):
+        if self.b2_os == 'darwin' or self.b2_os == 'iphone':
+            return '<flags>"-arch {0}"'.format(self.apple_arch)
+        return ''
+
+    @property
+    def b2_isysroot(self):
+        if self.b2_os == 'darwin' or self.b2_os == 'iphone':
+            return '<flags>"-isysroot {0}"'.format(self.apply_isysroot)
+        return ''
+
+    @property
+    def b2_fpic(self):
+        if self.b2_os != 'windows' and self.b2_toolset in ['gcc', 'clang'] and self.b2_link == 'static':
+            return '<flags>-fPIC\n<cxxflags>-fPIC'
+        return ''

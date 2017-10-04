@@ -139,6 +139,9 @@ project boost
     <target-os>darwin:<linkflags>-std=c++11
     <library-path>$(LIBPATH)
     {{{libcxx}}}
+    {{{arch_flags}}}
+    {{{isysroot}}}
+    {{{fpic}}}
 :   build-dir bin
 :   default-build {{{variant}}}
     <target-os>{{{os}}}
