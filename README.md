@@ -12,7 +12,7 @@ Generators are distributed just like other packages, and used in other packages 
 
 ### To build and package Boost.System
 * Look at the recipe for **Boost.System** here: [Boost System Recipe](https://github.com/bincrafters/conan-boost-system)
-* The **Boost.System** library recipe is invoked using `conan create bincrafters/testing`
+* The **Boost.System** library recipe is invoked using `conan create bincrafters/stable`
 * This **Boost.Generator** package is listed in `build_requires`, and thus downloaded
 * The appropriate version of Boost.Build is also downloaded transitively
 * All runtime dependencies listed in `requires` are downloaded
@@ -35,7 +35,7 @@ Generators are distributed just like other packages, and used in other packages 
 The following should exist in `conanfile.py` for any Boost library which is not a header-only library, and needs to be built. 
 
 ```
-	build_requires = "Boost.Generator/1.65.1@bincrafters/testing"
+	build_requires = "Boost.Generator/1.65.1@bincrafters/stable"
     generators = "boost"
 ```
 	
@@ -47,7 +47,7 @@ The example below shows the commands used to publish to bincrafters conan reposi
 
 The following command both runs all the steps of the conan file, and publishes the package to the local system cache.  This includes downloading dependencies from `build_requires` and `requires` , and then running the `build()` and `package()` methods. 
 
-    $ conan create bincrafters/testing
+    $ conan create bincrafters/stable
 	
 ## Add bincrafters repository to your "remotes"
 
@@ -55,7 +55,7 @@ The following command both runs all the steps of the conan file, and publishes t
 
 ## Upload to bintray 
 
-    $ conan upload --all --remote bincrafters Boost.Generator/1.65.1@bincrafters/testing
+    $ conan upload --all --remote bincrafters Boost.Generator/1.65.1@bincrafters/stable
 
 ### License
-[Boost](LICENSE)
+[Boost](www.boost.org/LICENSE_1_0.txt)
