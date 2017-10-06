@@ -281,7 +281,10 @@ class boost(Generator):
     @property
     def b2_python_exec(self):
         try:
-            return '"'+str(self.conanfile.options.python).replace("\\","/")+'"'
+            pyexec = str(self.conanfile.options.python)
+            output = StringIO()
+            self.conanfile.run('{0} -c "import sys; print(sys.executable)"'.format(pyexec), output=output)
+            return '"'+output.getvalue().strip().replace("\\","/")+'"'
         except:
             return ""
     
@@ -299,8 +302,7 @@ class boost(Generator):
     @property
     def b2_python_lib(self):
         stdlib_dir = os.path.dirname(self.get_python_path("stdlib")).replace('\\', '/')
-        config_dir = os.path.join(stdlib_dir, "python{0}".format(self.b2_python_version), "config")
-        return stdlib_dir  #"{0} {1}".format(stdlib_dir, config_dir)
+        return stdlib_dir
         
     def get_python_path(self, dir_name):
         cmd = "import sysconfig; print(sysconfig.get_path('{0}'))".format(dir_name)
@@ -311,7 +313,7 @@ class boost(Generator):
         if pyexec:
             output = StringIO()
             self.conanfile.run('{0} -c "{1}"'.format(pyexec, cmd), output=output)
-            return output.getvalue()
+            return output.getvalue().strip()
         else:
             return ""
 
