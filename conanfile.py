@@ -285,10 +285,12 @@ class boost(Generator):
         except:
             return ""
     
+    _python_version = ""
     @property
     def b2_python_version(self):
         cmd = "from sys import *; print('%d.%d' % (version_info[0],version_info[1]))"
-        return self.run_python_command(cmd)
+        self._python_version = self._python_version or self.run_python_command(cmd)
+        return self._python_version
       
     @property
     def b2_python_include(self):
@@ -296,7 +298,9 @@ class boost(Generator):
     
     @property
     def b2_python_lib(self):
-        return os.path.dirname(self.get_python_path("stdlib")).replace('\\', '/')
+        stdlib_dir = os.path.dirname(self.get_python_path("stdlib")).replace('\\', '/')
+        config_dir = os.path.join(stdlib_dir, "python{0}".format(self.b2_python_version), "config")
+        return stdlib_dir  #"{0} {1}".format(stdlib_dir, config_dir)
         
     def get_python_path(self, dir_name):
         cmd = "import sysconfig; print(sysconfig.get_path('{0}'))".format(dir_name)
