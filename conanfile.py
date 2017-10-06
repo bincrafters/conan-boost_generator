@@ -314,7 +314,7 @@ class boost(Generator):
             self.conanfile.run(
                 '''{0} -c "import sysconfig; print(sysconfig.get_path('include'))"'''.format(pyexec),
                 output=pyval)
-            return pyval.value
+            return pyval.value.replace('\\', '/')
         else:
             return ""
     
@@ -331,7 +331,7 @@ class boost(Generator):
             self.conanfile.run(
                 '''{0} -c "import sysconfig; print(sysconfig.get_path('stdlib'))"'''.format(pyexec),
                 output=pyval)
-            return os.path.dirname(pyval.value)
+            return os.path.dirname(pyval.value).replace('\\', '/')
         else:
             return ""
 
