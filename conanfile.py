@@ -1,5 +1,6 @@
 from conans.model.conan_generator import Generator
 from conans import ConanFile, os, tools, load
+from io import StringIO
 import glob
 import subprocess
 
@@ -286,52 +287,27 @@ class boost(Generator):
     
     @property
     def b2_python_version(self):
-        pyexec = self.b2_python_exec
-        if pyexec:
-            class get_pyver():
-                def __init__(self):
-                    self.value = ""
-                def write(self,m):
-                    self.value = self.value+m.strip()
-            pyver = get_pyver()
-            self.conanfile.run(
-                '''{0} -c "from sys import *; print('%d.%d' % (version_info[0],version_info[1]))"'''.format(pyexec),
-                output=pyver)
-            return pyver.value
-        else:
-            return ""
-    
+        cmd = "from sys import *; print('%d.%d' % (version_info[0],version_info[1]))"
+        return self.run_python_command(cmd)
+      
     @property
     def b2_python_include(self):
-        pyexec = self.b2_python_exec
-        if pyexec:
-            class get_val():
-                def __init__(self):
-                    self.value = ""
-                def write(self,m):
-                    self.value = self.value+m.strip()
-            pyval = get_val()
-            self.conanfile.run(
-                '''{0} -c "import sysconfig; print(sysconfig.get_path('include'))"'''.format(pyexec),
-                output=pyval)
-            return pyval.value.replace('\\', '/')
-        else:
-            return ""
+        return self.get_python_path("include").replace('\\', '/')
     
     @property
     def b2_python_lib(self):
+        return os.path.dirname(self.get_python_path("stdlib")).replace('\\', '/')
+        
+    def get_python_path(self, dir_name):
+        cmd = "import sysconfig; print(sysconfig.get_path('{0}'))".format(dir_name)
+        return self.run_python_command(cmd)    
+                  
+    def run_python_command(self, cmd):
         pyexec = self.b2_python_exec
         if pyexec:
-            class get_val():
-                def __init__(self):
-                    self.value = ""
-                def write(self,m):
-                    self.value = self.value+m.strip()
-            pyval = get_val()
-            self.conanfile.run(
-                '''{0} -c "import sysconfig; print(sysconfig.get_path('stdlib'))"'''.format(pyexec),
-                output=pyval)
-            return os.path.dirname(pyval.value).replace('\\', '/')
+            output = StringIO()
+            self.conanfile.run('{0} -c "{1}"'.format(pyexec, cmd), output=output)
+            return output.getvalue()
         else:
             return ""
 
