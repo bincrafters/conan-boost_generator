@@ -297,7 +297,11 @@ class boost(Generator):
       
     @property
     def b2_python_include(self):
-        return self.get_python_path("include").replace('\\', '/')
+        pyinclude = self.get_python_path("include")
+        if not os.path.exists(os.path.join(pyinclude, 'pyconfig.h')):
+            return ""
+        else:
+            return pyinclude.replace('\\', '/')
     
     @property
     def b2_python_lib(self):
