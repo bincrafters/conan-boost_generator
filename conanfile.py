@@ -366,7 +366,7 @@ class boost(Generator):
     @property
     def b2_arch_flags(self):
         if self.b2_os == 'darwin' or self.b2_os == 'iphone':
-            return '<linkflags>"-arch {0}"\n<flags>"-arch {0}"'.format(self.apple_arch)
+            return '<flags>"-arch {0}"'.format(self.apple_arch)
         return ''
 
     @property
