@@ -1,8 +1,9 @@
 from conans.model.conan_generator import Generator
-from conans import ConanFile, os, tools, load
+from conans import ConanFile, tools, load
 from io import StringIO
 import glob
 import subprocess
+import os
 
 # This is the normal packaging info since generators
 # get published just like other packages. Although
