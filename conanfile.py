@@ -27,7 +27,7 @@ class BoostGenerator(ConanFile):
 
 
 class boost(Generator):
-   
+
     @property
     def filename(self):
         pass  # in this case, filename defined in return value of content method
@@ -35,7 +35,7 @@ class boost(Generator):
     @property
     def content(self):
         jam_include_paths = ' '.join('"' + path + '"' for path in self.conanfile.deps_cpp_info.includedirs).replace('\\','/')
-     
+
         libraries_to_build = " ".join(self.conanfile.lib_short_names)
 
         jamroot_content = self.get_template_content() \
@@ -62,7 +62,7 @@ class boost(Generator):
 
         return {
             "jamroot" : jamroot_content,
-            "boostcpp.jam" : self.get_boostcpp_content(), 
+            "boostcpp.jam" : self.get_boostcpp_content(),
             "project-config.jam" : self.get_project_config_content(),
             "short_path.cmd" : "@echo off\nECHO %~s1"
         }
@@ -76,13 +76,13 @@ class boost(Generator):
         boostcpp_file_path = os.path.join(self.get_boost_generator_source_path(), "boostcpp.jam")
         boostcpp_content = load(boostcpp_file_path)
         return boostcpp_content
-        
+
     def get_boost_generator_source_path(self):
         boost_generator = self.conanfile.deps_cpp_info["Boost.Generator"]
         boost_generator_root_path = boost_generator.rootpath
         boost_generator_source_path = os.path.join(boost_generator_root_path, os.pardir, os.pardir, "export")
         return boost_generator_source_path
-        
+
     def get_deps_info_for_jamfile(self):
         deps_info = []
         for dep_name, dep_cpp_info in self.deps_build_info.dependencies:
@@ -112,6 +112,8 @@ class boost(Generator):
             .replace("{{{zlib_include_paths}}}", self.zlib_include_paths) \
             .replace("{{{bzip2_lib_paths}}}", self.bzip2_lib_paths) \
             .replace("{{{bzip2_include_paths}}}", self.bzip2_include_paths) \
+            .replace("{{{lzma_lib_paths}}}", self.lzma_lib_paths) \
+            .replace("{{{lzma_include_paths}}}", self.lzma_include_paths) \
             .replace("{{{python_exec}}}", self.b2_python_exec) \
             .replace("{{{python_version}}}", self.b2_python_version) \
             .replace("{{{python_include}}}", self.b2_python_include) \
@@ -152,14 +154,14 @@ class boost(Generator):
             return 'arm'
         else:
             return ""
-    
+
     @property
     def b2_variant(self):
         if str(self.settings.build_type) == "Debug":
             return "debug"
         else:
             return "release"
-    
+
     @property
     def b2_toolset(self):
         b2_toolsets = {
@@ -168,7 +170,7 @@ class boost(Generator):
           'clang': 'clang',
           'apple-clang': 'clang'}
         return b2_toolsets[str(self.settings.compiler)]
-    
+
     @property
     def b2_toolset_version(self):
         if self.settings.compiler == "Visual Studio":
@@ -178,7 +180,7 @@ class boost(Generator):
                 return str(self.settings.compiler.version) + ".0"
         else:
             return "$(DEFAULT)"
-    
+
     @property
     def b2_toolset_exec(self):
         if self.b2_os == 'linux' or self.b2_os == 'freebsd' or self.b2_os == 'solaris' or self.b2_os == 'darwin':
@@ -213,7 +215,7 @@ class boost(Generator):
                 glob.glob(os.path.join(vs_root,"VC","bin","cl.exe"))
             if cl_exe:
                 return cl_exe[0].replace("\\","/")
-                
+
     @property
     def b2_link(self):
         shared = False
@@ -222,13 +224,13 @@ class boost(Generator):
         except:
             pass
         return "shared" if shared else "static"
-    
+
     @property
     def b2_runtime_link(self):
         if self.settings.compiler == "Visual Studio" and self.settings.compiler.runtime:
             return "static" if "MT" in str(self.settings.compiler.runtime) else "$(DEFAULT)"
         return "$(DEFAULT)"
-    
+
     @property
     def zlib_lib_paths(self):
         try:
@@ -237,7 +239,7 @@ class boost(Generator):
         except:
             pass
         return ""
-    
+
     @property
     def zlib_include_paths(self):
         try:
@@ -246,7 +248,7 @@ class boost(Generator):
         except:
             pass
         return ""
-    
+
     @property
     def bzip2_lib_paths(self):
         try:
@@ -255,7 +257,7 @@ class boost(Generator):
         except:
             pass
         return ""
-    
+
     @property
     def bzip2_include_paths(self):
         try:
@@ -264,7 +266,25 @@ class boost(Generator):
         except:
             pass
         return ""
-    
+
+    @property
+    def lzma_lib_paths(self):
+        try:
+            if self.conanfile.options.use_lzma:
+                return '"{0}"'.format('" "'.join(self.deps_build_info["lzma"].lib_paths))
+        except:
+            pass
+        return ""
+
+    @property
+    def lzma_include_paths(self):
+        try:
+            if self.conanfile.options.use_lzma:
+                return '"{0}"'.format('" "'.join(self.deps_build_info["lzma"].include_paths))
+        except:
+            pass
+        return ""
+
     @property
     def b2_libcxx(self):
         if self.b2_toolset == 'gcc':
@@ -278,7 +298,7 @@ class boost(Generator):
             else:
                 return '<cflags>-stdlib=libstdc++ <linkflags>-stdlib=libstdc++'
         return ''
-    
+
     @property
     def b2_python_exec(self):
         try:
@@ -288,14 +308,14 @@ class boost(Generator):
             return '"'+output.getvalue().strip().replace("\\","/")+'"'
         except:
             return ""
-    
+
     _python_version = ""
     @property
     def b2_python_version(self):
         cmd = "from sys import *; print('%d.%d' % (version_info[0],version_info[1]))"
         self._python_version = self._python_version or self.run_python_command(cmd)
         return self._python_version
-      
+
     @property
     def b2_python_include(self):
         pyinclude = self.get_python_path("include")
@@ -303,16 +323,16 @@ class boost(Generator):
             return ""
         else:
             return pyinclude.replace('\\', '/')
-    
+
     @property
     def b2_python_lib(self):
         stdlib_dir = os.path.dirname(self.get_python_path("stdlib")).replace('\\', '/')
         return stdlib_dir
-        
+
     def get_python_path(self, dir_name):
         cmd = "import sysconfig; print(sysconfig.get_path('{0}'))".format(dir_name)
-        return self.run_python_command(cmd)    
-                  
+        return self.run_python_command(cmd)
+
     def run_python_command(self, cmd):
         pyexec = self.b2_python_exec
         if pyexec:
