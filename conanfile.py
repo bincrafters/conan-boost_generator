@@ -289,14 +289,14 @@ class boost(Generator):
     def b2_libcxx(self):
         if self.b2_toolset == 'gcc':
             if str(self.settings.compiler.libcxx) == 'libstdc++11':
-                return '<cflags>-std=c++11 <linkflags>-std=c++11'
+                return '<cxxflags>-std=c++11 <linkflags>-std=c++11'
         elif self.b2_toolset == 'clang':
             if str(self.settings.compiler.libcxx) == 'libc++':
-                return '<cflags>-stdlib=libc++ <linkflags>-stdlib=libc++'
+                return '<cxxflags>-stdlib=libc++ <linkflags>-stdlib=libc++'
             elif str(self.settings.compiler.libcxx) == 'libstdc++11':
-                return '<cflags>-stdlib=libstdc++ <linkflags>-stdlib=libstdc++ <cflags>-std=c++11 <linkflags>-std=c++11'
+                return '<cxxflags>-stdlib=libstdc++ <linkflags>-stdlib=libstdc++ <cxxflags>-std=c++11 <linkflags>-std=c++11'
             else:
-                return '<cflags>-stdlib=libstdc++ <linkflags>-stdlib=libstdc++'
+                return '<cxxflags>-stdlib=libstdc++ <linkflags>-stdlib=libstdc++'
         return ''
 
     @property
