@@ -185,7 +185,8 @@ class boost(Generator):
 
     @property
     def b2_toolset_exec(self):
-        if self.b2_os in ['linux', 'freebsd', 'solaris', 'darwin']:
+        if self.b2_os in ['linux', 'freebsd', 'solaris', 'darwin'] or \
+                (self.b2_os == 'windows' and self.b2_toolset == 'gcc'):
             version = str(self.settings.compiler.version).split('.')
             result_x = self.b2_toolset.replace('gcc', 'g++') + "-" + version[0]
             result_xy = result_x + version[1] if version[1] != '0' else ''
