@@ -5,6 +5,7 @@ import glob
 import subprocess
 import os
 
+
 # This is the normal packaging info since generators
 # get published just like other packages. Although
 # most of the standard package methods are overridden
@@ -21,20 +22,21 @@ class BoostGenerator(ConanFile):
     requires = "Boost.Build/1.65.1@bincrafters/testing"
 
     def package_info(self):
-        self.user_info.b2_command = "b2 -j%s -a --hash=yes --debug-configuration --layout=system"%(tools.cpu_count())
+        self.user_info.b2_command = "b2 -j%s -a --hash=yes --debug-configuration --layout=system" % (tools.cpu_count())
+
 
 # Below is the actual generator code
 
 
 class boost(Generator):
-
     @property
     def filename(self):
         pass  # in this case, filename defined in return value of content method
 
     @property
     def content(self):
-        jam_include_paths = ' '.join('"' + path + '"' for path in self.conanfile.deps_cpp_info.includedirs).replace('\\','/')
+        jam_include_paths = ' '.join('"' + path + '"' for path in self.conanfile.deps_cpp_info.includedirs).replace(
+            '\\', '/')
 
         libraries_to_build = " ".join(self.conanfile.lib_short_names)
 
@@ -59,12 +61,11 @@ class boost(Generator):
             .replace("{{{isysroot}}}", self.b2_isysroot) \
             .replace("{{{fpic}}}", self.b2_fpic)
 
-
         return {
-            "jamroot" : jamroot_content,
-            "boostcpp.jam" : self.get_boostcpp_content(),
-            "project-config.jam" : self.get_project_config_content(),
-            "short_path.cmd" : "@echo off\nECHO %~s1"
+            "jamroot": jamroot_content,
+            "boostcpp.jam": self.get_boostcpp_content(),
+            "project-config.jam": self.get_project_config_content(),
+            "short_path.cmd": "@echo off\nECHO %~s1"
         }
 
     def get_template_content(self):
@@ -87,14 +88,14 @@ class boost(Generator):
         deps_info = []
         for dep_name, dep_cpp_info in self.deps_build_info.dependencies:
             dep_libdir = os.path.join(dep_cpp_info.rootpath, dep_cpp_info.libdirs[0])
-            if os.path.isfile(os.path.join(dep_libdir,"jamroot.jam")):
+            if os.path.isfile(os.path.join(dep_libdir, "jamroot.jam")):
                 deps_info.append(
-                    "use-project /" + dep_name +  " : " + dep_libdir.replace('\\','/') + " ;")
+                    "use-project /" + dep_name + " : " + dep_libdir.replace('\\', '/') + " ;")
                 try:
                     dep_short_names = self.conanfile.deps_user_info[dep_name].lib_short_names.split(",")
                     for dep_short_name in dep_short_names:
                         deps_info.append(
-                            'LIBRARY_DIR(' + dep_short_name + ') = "' + dep_libdir.replace('\\','/') + '" ;')
+                            'LIBRARY_DIR(' + dep_short_name + ') = "' + dep_libdir.replace('\\', '/') + '" ;')
                 except KeyError:
                     pass
 
@@ -102,7 +103,8 @@ class boost(Generator):
         return deps_info
 
     def get_project_config_content(self):
-        project_config_content_file_path = os.path.join(self.get_boost_generator_source_path(), "project-config.template.jam")
+        project_config_content_file_path = os.path.join(self.get_boost_generator_source_path(),
+                                                        "project-config.template.jam")
         project_config_content = load(project_config_content_file_path)
         return project_config_content \
             .replace("{{{toolset}}}", self.b2_toolset) \
@@ -165,10 +167,10 @@ class boost(Generator):
     @property
     def b2_toolset(self):
         b2_toolsets = {
-          'gcc': 'gcc',
-          'Visual Studio': 'msvc',
-          'clang': 'clang',
-          'apple-clang': 'clang'}
+            'gcc': 'gcc',
+            'Visual Studio': 'msvc',
+            'clang': 'clang',
+            'apple-clang': 'clang'}
         return b2_toolsets[str(self.settings.compiler)]
 
     @property
@@ -183,13 +185,16 @@ class boost(Generator):
 
     @property
     def b2_toolset_exec(self):
-        if self.b2_os == 'linux' or self.b2_os == 'freebsd' or self.b2_os == 'solaris' or self.b2_os == 'darwin':
+        if self.b2_os in ['linux', 'freebsd', 'solaris', 'darwin'] or \
+                (self.b2_os == 'windows' and self.b2_toolset == 'gcc'):
             version = str(self.settings.compiler.version).split('.')
-            result_x = self.b2_toolset.replace('gcc','g++') + "-" + version[0]
+            result_x = self.b2_toolset.replace('gcc', 'g++') + "-" + version[0]
             result_xy = result_x + version[1] if version[1] != '0' else ''
+
             class dev_null(object):
                 def write(self, message):
                     pass
+
             try:
                 self.conanfile.run(result_xy + " --version", output=dev_null())
                 return result_xy
@@ -211,10 +216,10 @@ class boost(Generator):
         vs_root = tools.vs_installation_path(str(self.settings.compiler.version))
         if vs_root:
             cl_exe = \
-                glob.glob(os.path.join(vs_root,"VC","Tools","MSVC","*","bin","*","*","cl.exe")) + \
-                glob.glob(os.path.join(vs_root,"VC","bin","cl.exe"))
+                glob.glob(os.path.join(vs_root, "VC", "Tools", "MSVC", "*", "bin", "*", "*", "cl.exe")) + \
+                glob.glob(os.path.join(vs_root, "VC", "bin", "cl.exe"))
             if cl_exe:
-                return cl_exe[0].replace("\\","/")
+                return cl_exe[0].replace("\\", "/")
 
     @property
     def b2_link(self):
@@ -305,11 +310,12 @@ class boost(Generator):
             pyexec = str(self.conanfile.options.python)
             output = StringIO()
             self.conanfile.run('{0} -c "import sys; print(sys.executable)"'.format(pyexec), output=output)
-            return '"'+output.getvalue().strip().replace("\\","/")+'"'
+            return '"' + output.getvalue().strip().replace("\\", "/") + '"'
         except:
             return ""
 
     _python_version = ""
+
     @property
     def b2_python_version(self):
         cmd = "from sys import *; print('%d.%d' % (version_info[0],version_info[1]))"
