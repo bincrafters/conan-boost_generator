@@ -17,11 +17,15 @@ class BoostGenerator(ConanFile):
     url = "https://github.com/bincrafters/conan-boost-generator"
     description = "Conan build generator for boost libraries http://www.boost.org/doc/libs/1_65_1/libs/libraries.htm"
     license = "BSL"
-    exports = "boostcpp.jam", "jamroot.template", "project-config.template.jam"
+    exports = "boostcpp.jam", "jamroot.template", "project-config.template.jam", "boostgenerator.py"
     requires = "Boost.Build/1.65.1@bincrafters/testing"
+
+    def package(self):
+        self.copy("boostgenerator.py")
 
     def package_info(self):
         self.user_info.b2_command = "b2 -j%s -a --hash=yes --debug-configuration --layout=system"%(tools.cpu_count())
+        self.env_info.PYTHONPATH.append(self.package_folder)
 
 # Below is the actual generator code
 
@@ -34,38 +38,43 @@ class boost(Generator):
 
     @property
     def content(self):
-        jam_include_paths = ' '.join('"' + path + '"' for path in self.conanfile.deps_cpp_info.includedirs).replace('\\','/')
-     
-        libraries_to_build = " ".join(self.conanfile.lib_short_names)
+        try:
+            jam_include_paths = ' '.join('"' + path + '"' for path in self.conanfile.deps_cpp_info.includedirs).replace('\\','/')
+         
+            libraries_to_build = " ".join(self.conanfile.lib_short_names)
 
-        jamroot_content = self.get_template_content() \
-            .replace("{{{toolset}}}", self.b2_toolset) \
-            .replace("{{{libraries}}}", libraries_to_build) \
-            .replace("{{{boost_version}}}", self.conanfile.version) \
-            .replace("{{{deps.include_paths}}}", jam_include_paths) \
-            .replace("{{{os}}}", self.b2_os) \
-            .replace("{{{address_model}}}", self.b2_address_model) \
-            .replace("{{{architecture}}}", self.b2_architecture) \
-            .replace("{{{deps_info}}}", self.get_deps_info_for_jamfile()) \
-            .replace("{{{variant}}}", self.b2_variant) \
-            .replace("{{{name}}}", self.conanfile.name) \
-            .replace("{{{link}}}", self.b2_link) \
-            .replace("{{{runtime_link}}}", self.b2_runtime_link) \
-            .replace("{{{toolset_version}}}", self.b2_toolset_version) \
-            .replace("{{{toolset_exec}}}", self.b2_toolset_exec) \
-            .replace("{{{libcxx}}}", self.b2_libcxx) \
-            .replace("{{{libpath}}}", self.b2_icu_lib_paths) \
-            .replace("{{{arch_flags}}}", self.b2_arch_flags) \
-            .replace("{{{isysroot}}}", self.b2_isysroot) \
-            .replace("{{{fpic}}}", self.b2_fpic)
+            jamroot_content = self.get_template_content() \
+                .replace("{{{toolset}}}", self.b2_toolset) \
+                .replace("{{{libraries}}}", libraries_to_build) \
+                .replace("{{{boost_version}}}", self.conanfile.version) \
+                .replace("{{{deps.include_paths}}}", jam_include_paths) \
+                .replace("{{{os}}}", self.b2_os) \
+                .replace("{{{address_model}}}", self.b2_address_model) \
+                .replace("{{{architecture}}}", self.b2_architecture) \
+                .replace("{{{deps_info}}}", self.get_deps_info_for_jamfile()) \
+                .replace("{{{variant}}}", self.b2_variant) \
+                .replace("{{{name}}}", self.conanfile.name) \
+                .replace("{{{link}}}", self.b2_link) \
+                .replace("{{{runtime_link}}}", self.b2_runtime_link) \
+                .replace("{{{toolset_version}}}", self.b2_toolset_version) \
+                .replace("{{{toolset_exec}}}", self.b2_toolset_exec) \
+                .replace("{{{libcxx}}}", self.b2_libcxx) \
+                .replace("{{{libpath}}}", self.b2_icu_lib_paths) \
+                .replace("{{{arch_flags}}}", self.b2_arch_flags) \
+                .replace("{{{isysroot}}}", self.b2_isysroot) \
+                .replace("{{{fpic}}}", self.b2_fpic)
 
 
-        return {
-            "jamroot" : jamroot_content,
-            "boostcpp.jam" : self.get_boostcpp_content(), 
-            "project-config.jam" : self.get_project_config_content(),
-            "short_path.cmd" : "@echo off\nECHO %~s1"
-        }
+            return {
+                "jamroot" : jamroot_content,
+                "boostcpp.jam" : self.get_boostcpp_content(), 
+                "project-config.jam" : self.get_project_config_content(),
+                "short_path.cmd" : "@echo off\nECHO %~s1"
+                }
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            raise e
 
     def get_template_content(self):
         template_file_path = os.path.join(self.get_boost_generator_source_path(), "jamroot.template")
@@ -86,17 +95,18 @@ class boost(Generator):
     def get_deps_info_for_jamfile(self):
         deps_info = []
         for dep_name, dep_cpp_info in self.deps_build_info.dependencies:
-            dep_libdir = os.path.join(dep_cpp_info.rootpath, dep_cpp_info.libdirs[0])
-            if os.path.isfile(os.path.join(dep_libdir,"jamroot.jam")):
-                deps_info.append(
-                    "use-project /" + dep_name +  " : " + dep_libdir.replace('\\','/') + " ;")
-                try:
-                    dep_short_names = self.conanfile.deps_user_info[dep_name].lib_short_names.split(",")
-                    for dep_short_name in dep_short_names:
-                        deps_info.append(
-                            'LIBRARY_DIR(' + dep_short_name + ') = "' + dep_libdir.replace('\\','/') + '" ;')
-                except KeyError:
-                    pass
+            for libdir in dep_cpp_info.libdirs:
+                dep_libdir = os.path.join(dep_cpp_info.rootpath, libdir)
+                if os.path.isfile(os.path.join(dep_libdir,"jamroot.jam")):
+                    deps_info.append(
+                        "use-project /" + dep_name +  " : " + dep_libdir.replace('\\','/') + " ;")
+                    try:
+                        dep_short_names = self.conanfile.deps_user_info[dep_name].lib_short_names.split(",")
+                        for dep_short_name in dep_short_names:
+                            deps_info.append(
+                                'LIBRARY_DIR(' + dep_short_name + ') = "' + dep_libdir.replace('\\','/') + '" ;')
+                    except KeyError:
+                        pass
 
         deps_info = "\n".join(deps_info)
         return deps_info
@@ -115,7 +125,8 @@ class boost(Generator):
             .replace("{{{python_exec}}}", self.b2_python_exec) \
             .replace("{{{python_version}}}", self.b2_python_version) \
             .replace("{{{python_include}}}", self.b2_python_include) \
-            .replace("{{{python_lib}}}", self.b2_python_lib)
+            .replace("{{{python_lib}}}", self.b2_python_lib) \
+            .replace("{{{mpicxx}}}", self.b2_mpicxx)
 
     @property
     def b2_os(self):
@@ -381,3 +392,10 @@ class boost(Generator):
         if self.b2_os != 'windows' and self.b2_toolset in ['gcc', 'clang'] and self.b2_link == 'static':
             return '<flags>-fPIC\n<cxxflags>-fPIC'
         return ''
+    
+    @property
+    def b2_mpicxx(self):
+        try:
+            return str(self.conanfile.options.mpicxx)
+        except:
+            return ''
