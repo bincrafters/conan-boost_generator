@@ -164,15 +164,13 @@ rule python-tag ( name : type ? : property-set )
 
 rule boost-install ( libraries * )
 {
-    install stage : $(libraries) : <location>output ;
-    module [ CALLER_MODULE ] { explicit stage ; }
+    # Intentional no-op.
 }
 
 rule boost-lib ( name : sources * : requirements * : default-build * : usage-requirements * )
 {
     name = boost_$(name) ;
     lib $(name) : $(sources) : $(requirements) : $(default-build) : $(usage-requirements) ;
-    boost-install $(name) ;
 }
 
 module boostcpp
@@ -252,13 +250,47 @@ install export-jamroot : jamroot.jam : <location>stage/lib ;
 project.load-used-projects $(__name__) ;
 .used-projects = ;
 
+feature.feature library-name : : free incidental ;
+
+rule export-lib-jamroot ( targets * : sources * : properties * )
+{
+    local library = [ feature.get-values <library-name> : $(properties) ] ;
+    print.output $(targets[1]) ;
+    print.text "import project ;" ;
+    print.text "project /$(library) ;" ;
+    local dollar = "\$" ;
+    local usage = "$(LIBRARY_USAGE($(library)):J= )" ;
+    print.text "project.register-id /boost/$(library) : $(dollar)(__name__) ;" ;
+    print.text "lib boost_$(library) : : <name>boost_$(library) <search>. : : $(usage:E=) ;" ;
+    print.text "" ;
+}
+
 LIBRARIES_BUILD = ;
 for local library in $(LIBRARIES)
 {
     if [ path.exists $(library)/build ]
     {
-        use-project /boost/$(library) : $(library)/build ;
         LIBRARIES_BUILD += $(library) ;
+        use-project /boost/$(library) : $(library)/build ;
+        make $(library)-lib/jamroot.jam :
+            : @export-lib-jamroot
+            : <library-name>$(library) ;
+        explicit $(library)-lib/jamroot.jam ;
+
+        install $(library)-lib
+            : $(library)-for-install
+            : <location>$(library)/lib
+              <install-dependencies>on <install-type>LIB
+              <install-no-version-symlinks>on ;
+        explicit $(library)-lib ;
+        install $(library)-jamroot
+            : $(library)-lib/jamroot.jam
+            : <location>$(library)/lib ;
+        explicit $(library)-jamroot ;
+
+        alias $(library)-build
+            : $(library)-lib $(library)-jamroot ;
+        explicit $(library)-build ;
     }
 }
 

@@ -20,10 +20,16 @@ class BoostGenerator(ConanFile):
     exports = "boostcpp.jam", "jamroot.template", "project-config.template.jam", "boostgenerator.py"
     requires = "Boost.Build/1.65.1@bincrafters/testing"
 
+    def build(self):
+        pass
+
     def package(self):
         self.copy("boostgenerator.py")
 
     def package_info(self):
+        self.cpp_info.includedirs = []
+        self.cpp_info.libdirs = []
+        self.cpp_info.bindirs = []
         self.user_info.b2_command = "b2 -j%s -a --hash=yes --debug-configuration --layout=system"%(tools.cpu_count())
         self.env_info.PYTHONPATH.append(self.package_folder)
 
@@ -38,6 +44,7 @@ class boost(Generator):
 
     @property
     def content(self):
+        print("@@@@@@@@ BoostGenerator:boost.content: " + str(self.conanfile))
         try:
             jam_include_paths = ' '.join('"' + path + '"' for path in self.conanfile.deps_cpp_info.includedirs).replace('\\','/')
          

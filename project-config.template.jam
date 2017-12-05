@@ -31,3 +31,12 @@ if $(python_exec)
 {
     using python : {{{python_version}}} : $(python_exec) : $(python_include) : $(python_lib) ;
 }
+local mpicxx = "{{{mpicxx}}}" ;
+if $(mpicxx) = "default" || $(mpicxx) = ""
+{
+    using mpi ;
+}
+else if $(mpicxx)
+{
+    using mpi : $(mpicxx) ;
+}
