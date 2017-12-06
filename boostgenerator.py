@@ -67,7 +67,7 @@ class BoostConanFile(object):
             try:
                 boostorg_github = "https://github.com/boostorg"
                 archive_name = "boost-" + conanfile.version
-                libs_to_get = conanfile.lib_short_names
+                libs_to_get = list(conanfile.lib_short_names)
                 for lib_short_name in conanfile.lib_short_names:
                     libs_to_get.extend(BoostConanFile.source_only_deps(conanfile, lib_short_name))
                 for lib_short_name in libs_to_get:
