@@ -44,7 +44,7 @@ class boost(Generator):
 
     @property
     def content(self):
-        print("@@@@@@@@ BoostGenerator:boost.content: " + str(self.conanfile))
+        # print("@@@@@@@@ BoostGenerator:boost.content: " + str(self.conanfile))
         try:
             jam_include_paths = ' '.join('"' + path + '"' for path in self.conanfile.deps_cpp_info.includedirs).replace('\\','/')
          
