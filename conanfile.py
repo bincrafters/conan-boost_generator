@@ -30,14 +30,14 @@ class BoostGenerator(ConanFile):
         self.cpp_info.includedirs = []
         self.cpp_info.libdirs = []
         self.cpp_info.bindirs = []
-        self.user_info.b2_command = "b2 -j%s -a --hash=yes --debug-configuration --layout=system"%(tools.cpu_count())
+        self.user_info.b2_command = "b2 -j%s -a --hash=yes --debug-configuration --layout=system" % (tools.cpu_count())
         self.env_info.PYTHONPATH.append(self.package_folder)
 
 # Below is the actual generator code
 
 
 class boost(Generator):
-   
+
     @property
     def filename(self):
         pass  # in this case, filename defined in return value of content method
@@ -46,7 +46,7 @@ class boost(Generator):
     def content(self):
         # print("@@@@@@@@ BoostGenerator:boost.content: " + str(self.conanfile))
         try:
-            jam_include_paths = ' '.join('"' + path + '"' for path in self.conanfile.deps_cpp_info.includedirs).replace('\\','/')
+            jam_include_paths = ' '.join('"' + path + '"' for path in self.conanfile.deps_cpp_info.includedirs).replace('\\', '/')
          
             libraries_to_build = " ".join(self.conanfile.lib_short_names)
 
@@ -71,10 +71,9 @@ class boost(Generator):
                 .replace("{{{isysroot}}}", self.b2_isysroot) \
                 .replace("{{{fpic}}}", self.b2_fpic)
 
-
             return {
                 "jamroot" : jamroot_content,
-                "boostcpp.jam" : self.get_boostcpp_content(), 
+                "boostcpp.jam" : self.get_boostcpp_content(),
                 "project-config.jam" : self.get_project_config_content(),
                 "short_path.cmd" : "@echo off\nECHO %~s1"
                 }
@@ -92,27 +91,27 @@ class boost(Generator):
         boostcpp_file_path = os.path.join(self.get_boost_generator_source_path(), "boostcpp.jam")
         boostcpp_content = load(boostcpp_file_path)
         return boostcpp_content
-        
+
     def get_boost_generator_source_path(self):
         boost_generator = self.conanfile.deps_cpp_info["Boost.Generator"]
         boost_generator_root_path = boost_generator.rootpath
         boost_generator_source_path = os.path.join(boost_generator_root_path, os.pardir, os.pardir, "export")
         return boost_generator_source_path
-        
+
     def get_deps_info_for_jamfile(self):
         deps_info = []
         for dep_name, dep_cpp_info in self.deps_build_info.dependencies:
             for libdir in dep_cpp_info.libdirs:
                 dep_libdir = os.path.join(dep_cpp_info.rootpath, libdir)
-                if os.path.isfile(os.path.join(dep_libdir,"jamroot.jam")):
+                if os.path.isfile(os.path.join(dep_libdir, "jamroot.jam")):
                     lib_short_name = os.path.basename(os.path.dirname(dep_libdir))
                     deps_info.append(
-                        "use-project /" + dep_name + "," + lib_short_name +  " : " + dep_libdir.replace('\\','/') + " ;")
+                        "use-project /" + dep_name + "," + lib_short_name + " : " + dep_libdir.replace('\\', '/') + " ;")
                     try:
                         dep_short_names = self.conanfile.deps_user_info[dep_name].lib_short_names.split(",")
                         for dep_short_name in dep_short_names:
                             deps_info.append(
-                                'LIBRARY_DIR(' + dep_short_name + ') = "' + dep_libdir.replace('\\','/') + '" ;')
+                                'LIBRARY_DIR(' + dep_short_name + ') = "' + dep_libdir.replace('\\', '/') + '" ;')
                     except KeyError:
                         pass
 
@@ -120,7 +119,8 @@ class boost(Generator):
         return deps_info
 
     def get_project_config_content(self):
-        project_config_content_file_path = os.path.join(self.get_boost_generator_source_path(), "project-config.template.jam")
+        project_config_content_file_path = os.path.join(self.get_boost_generator_source_path(),
+                                                        "project-config.template.jam")
         project_config_content = load(project_config_content_file_path)
         return project_config_content \
             .replace("{{{toolset}}}", self.b2_toolset) \
@@ -130,6 +130,8 @@ class boost(Generator):
             .replace("{{{zlib_include_paths}}}", self.zlib_include_paths) \
             .replace("{{{bzip2_lib_paths}}}", self.bzip2_lib_paths) \
             .replace("{{{bzip2_include_paths}}}", self.bzip2_include_paths) \
+            .replace("{{{lzma_lib_paths}}}", self.lzma_lib_paths) \
+            .replace("{{{lzma_include_paths}}}", self.lzma_include_paths) \
             .replace("{{{python_exec}}}", self.b2_python_exec) \
             .replace("{{{python_version}}}", self.b2_python_version) \
             .replace("{{{python_include}}}", self.b2_python_include) \
@@ -171,23 +173,23 @@ class boost(Generator):
             return 'arm'
         else:
             return ""
-    
+
     @property
     def b2_variant(self):
         if str(self.settings.build_type) == "Debug":
             return "debug"
         else:
             return "release"
-    
+
     @property
     def b2_toolset(self):
         b2_toolsets = {
-          'gcc': 'gcc',
-          'Visual Studio': 'msvc',
-          'clang': 'clang',
-          'apple-clang': 'clang'}
+            'gcc': 'gcc',
+            'Visual Studio': 'msvc',
+            'clang': 'clang',
+            'apple-clang': 'clang'}
         return b2_toolsets[str(self.settings.compiler)]
-    
+
     @property
     def b2_toolset_version(self):
         if self.settings.compiler == "Visual Studio":
@@ -197,16 +199,20 @@ class boost(Generator):
                 return str(self.settings.compiler.version) + ".0"
         else:
             return "$(DEFAULT)"
-    
+
     @property
     def b2_toolset_exec(self):
-        if self.b2_os == 'linux' or self.b2_os == 'freebsd' or self.b2_os == 'solaris' or self.b2_os == 'darwin':
+        if self.b2_os in ['linux', 'freebsd', 'solaris', 'darwin'] or \
+                (self.b2_os == 'windows' and self.b2_toolset == 'gcc'):
             version = str(self.settings.compiler.version).split('.')
-            result_x = self.b2_toolset.replace('gcc','g++') + "-" + version[0]
+            result_x = self.b2_toolset.replace('gcc', 'g++') + "-" + version[0]
             result_xy = result_x + version[1] if version[1] != '0' else ''
+
             class dev_null(object):
+
                 def write(self, message):
                     pass
+
             try:
                 self.conanfile.run(result_xy + " --version", output=dev_null())
                 return result_xy
@@ -228,11 +234,11 @@ class boost(Generator):
         vs_root = tools.vs_installation_path(str(self.settings.compiler.version))
         if vs_root:
             cl_exe = \
-                glob.glob(os.path.join(vs_root,"VC","Tools","MSVC","*","bin","*","*","cl.exe")) + \
-                glob.glob(os.path.join(vs_root,"VC","bin","cl.exe"))
+                glob.glob(os.path.join(vs_root, "VC", "Tools", "MSVC", "*", "bin", "*", "*", "cl.exe")) + \
+                glob.glob(os.path.join(vs_root, "VC", "bin", "cl.exe"))
             if cl_exe:
-                return cl_exe[0].replace("\\","/")
-                
+                return cl_exe[0].replace("\\", "/")
+
     @property
     def b2_link(self):
         shared = False
@@ -241,13 +247,13 @@ class boost(Generator):
         except:
             pass
         return "shared" if shared else "static"
-    
+
     @property
     def b2_runtime_link(self):
         if self.settings.compiler == "Visual Studio" and self.settings.compiler.runtime:
             return "static" if "MT" in str(self.settings.compiler.runtime) else "$(DEFAULT)"
         return "$(DEFAULT)"
-    
+
     @property
     def zlib_lib_paths(self):
         try:
@@ -256,7 +262,7 @@ class boost(Generator):
         except:
             pass
         return ""
-    
+
     @property
     def zlib_include_paths(self):
         try:
@@ -265,7 +271,7 @@ class boost(Generator):
         except:
             pass
         return ""
-    
+
     @property
     def bzip2_lib_paths(self):
         try:
@@ -274,7 +280,7 @@ class boost(Generator):
         except:
             pass
         return ""
-    
+
     @property
     def bzip2_include_paths(self):
         try:
@@ -283,38 +289,57 @@ class boost(Generator):
         except:
             pass
         return ""
-    
+
+    @property
+    def lzma_lib_paths(self):
+        try:
+            if self.conanfile.options.use_lzma:
+                return '"{0}"'.format('" "'.join(self.deps_build_info["lzma"].lib_paths))
+        except:
+            pass
+        return ""
+
+    @property
+    def lzma_include_paths(self):
+        try:
+            if self.conanfile.options.use_lzma:
+                return '"{0}"'.format('" "'.join(self.deps_build_info["lzma"].include_paths))
+        except:
+            pass
+        return ""
+
     @property
     def b2_libcxx(self):
         if self.b2_toolset == 'gcc':
             if str(self.settings.compiler.libcxx) == 'libstdc++11':
-                return '<cflags>-std=c++11 <linkflags>-std=c++11'
+                return '<cxxflags>-std=c++11 <linkflags>-std=c++11'
         elif self.b2_toolset == 'clang':
             if str(self.settings.compiler.libcxx) == 'libc++':
-                return '<cflags>-stdlib=libc++ <linkflags>-stdlib=libc++'
+                return '<cxxflags>-stdlib=libc++ <linkflags>-stdlib=libc++'
             elif str(self.settings.compiler.libcxx) == 'libstdc++11':
-                return '<cflags>-stdlib=libstdc++ <linkflags>-stdlib=libstdc++ <cflags>-std=c++11 <linkflags>-std=c++11'
+                return '<cxxflags>-stdlib=libstdc++ <linkflags>-stdlib=libstdc++ <cxxflags>-std=c++11 <linkflags>-std=c++11'
             else:
-                return '<cflags>-stdlib=libstdc++ <linkflags>-stdlib=libstdc++'
+                return '<cxxflags>-stdlib=libstdc++ <linkflags>-stdlib=libstdc++'
         return ''
-    
+
     @property
     def b2_python_exec(self):
         try:
             pyexec = str(self.conanfile.options.python)
             output = StringIO()
             self.conanfile.run('{0} -c "import sys; print(sys.executable)"'.format(pyexec), output=output)
-            return '"'+output.getvalue().strip().replace("\\","/")+'"'
+            return '"' + output.getvalue().strip().replace("\\", "/") + '"'
         except:
             return ""
-    
+
     _python_version = ""
+
     @property
     def b2_python_version(self):
         cmd = "from sys import *; print('%d.%d' % (version_info[0],version_info[1]))"
         self._python_version = self._python_version or self.run_python_command(cmd)
         return self._python_version
-      
+
     @property
     def b2_python_include(self):
         pyinclude = self.get_python_path("include")
@@ -322,16 +347,16 @@ class boost(Generator):
             return ""
         else:
             return pyinclude.replace('\\', '/')
-    
+
     @property
     def b2_python_lib(self):
         stdlib_dir = os.path.dirname(self.get_python_path("stdlib")).replace('\\', '/')
         return stdlib_dir
-        
+
     def get_python_path(self, dir_name):
         cmd = "import sysconfig; print(sysconfig.get_path('{0}'))".format(dir_name)
-        return self.run_python_command(cmd)    
-                  
+        return self.run_python_command(cmd)
+
     def run_python_command(self, cmd):
         pyexec = self.b2_python_exec
         if pyexec:
@@ -386,7 +411,7 @@ class boost(Generator):
     @property
     def b2_arch_flags(self):
         if self.b2_os == 'darwin' or self.b2_os == 'iphone':
-            return '<flags>"-arch {0}"'.format(self.apple_arch)
+            return '<flags>"-arch {0}" <linkflags>"-arch {0}"'.format(self.apple_arch)
         return ''
 
     @property

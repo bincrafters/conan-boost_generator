@@ -23,7 +23,16 @@ else
 {
     modules.poke : NO_BZIP2 : 1 ;
 }
-modules.poke : NO_LZMA : 1 ;
+local lzma_lib_paths = {{{lzma_lib_paths}}} ;
+local lzma_include_paths = {{{lzma_include_paths}}} ;
+if $(lzma_include_paths)
+{
+    using lzma : : <include>$(lzma_include_paths) <search>$(lzma_lib_paths) ;
+}
+else
+{
+    modules.poke : NO_LZMA : 1 ;
+}
 local python_exec = {{{python_exec}}} ;
 local python_include = {{{python_include}}} ;
 local python_lib = {{{python_lib}}} ;
