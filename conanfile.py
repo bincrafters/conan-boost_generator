@@ -69,7 +69,8 @@ class boost(Generator):
                 .replace("{{{libpath}}}", self.b2_icu_lib_paths) \
                 .replace("{{{arch_flags}}}", self.b2_arch_flags) \
                 .replace("{{{isysroot}}}", self.b2_isysroot) \
-                .replace("{{{fpic}}}", self.b2_fpic)
+                .replace("{{{fpic}}}", self.b2_fpic) \
+                .replace("{{{threading}}}", self.b2_threading)
 
             return {
                 "jamroot" : jamroot_content,
@@ -432,3 +433,12 @@ class boost(Generator):
             return str(self.conanfile.options.mpicxx)
         except:
             return ''
+    
+    @property
+    def b2_threading(self):
+        try:
+            if not self.settings.compiler.threads:
+                return 'single'
+        except:
+            pass
+        return 'multi'

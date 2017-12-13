@@ -150,6 +150,7 @@ project boost
     <toolset>{{{toolset}}}
     <link>{{{link}}}
     <runtime-link>{{{runtime_link}}}
+    <threading>{{{threading}}}
 ;
 
 rule tag ( name : type ? : property-set )
@@ -226,25 +227,6 @@ rule lib_target (
 IMPORT : lib : : __lib_target__ ;
 IMPORT $(__name__) : lib_target : : lib ;
 
-rule export-jamroot ( targets * : sources * : properties * )
-{
-    print.output $(targets[1]) ;
-    print.text "import project ;" ;
-    print.text "project /{{{name}}} ;" ;
-    local dollar = "\$" ;
-    for local library in {{{libraries}}}
-    {
-        local usage = "$(LIBRARY_USAGE($(library)):J= )" ;
-        print.text "project.register-id /boost/$(library) : $(dollar)(__name__) ;" ;
-        print.text "lib boost_$(library) : : <name>boost_$(library) <search>. : : $(usage:E=) ;" ;
-    }
-    print.text "" ;
-}
-
-make jamroot.jam : : @export-jamroot ;
-
-install export-jamroot : jamroot.jam : <location>stage/lib ;
-
 {{{deps_info}}}
 
 project.load-used-projects $(__name__) ;
@@ -257,7 +239,7 @@ rule export-lib-jamroot ( targets * : sources * : properties * )
     local library = [ feature.get-values <library-name> : $(properties) ] ;
     print.output $(targets[1]) ;
     print.text "import project ;" ;
-    print.text "project /$(library) ;" ;
+    print.text "project /conan/$(library) ;" ;
     local dollar = "\$" ;
     local usage = "$(LIBRARY_USAGE($(library)):J= )" ;
     print.text "project.register-id /boost/$(library) : $(dollar)(__name__) ;" ;
