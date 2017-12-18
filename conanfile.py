@@ -207,7 +207,9 @@ class boost(Generator):
                 (self.b2_os == 'windows' and self.b2_toolset == 'gcc'):
             version = str(self.settings.compiler.version).split('.')
             result_x = self.b2_toolset.replace('gcc', 'g++') + "-" + version[0]
-            result_xy = result_x + version[1] if version[1] != '0' else ''
+            result_xy = result_x
+            if len(version) > 1:
+                result_xy += version[1] if version[1] != '0' else ''
 
             class dev_null(object):
 
