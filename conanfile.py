@@ -17,21 +17,20 @@ class BoostGenerator(ConanFile):
     url = "https://github.com/bincrafters/conan-boost-generator"
     description = "Conan build generator for boost libraries http://www.boost.org/doc/libs/1_65_1/libs/libraries.htm"
     license = "BSL"
-    exports = "boostcpp.jam", "jamroot.template", "project-config.template.jam", "boostgenerator.py"
+    exports = "boostcpp.jam", "jamroot.template", "project-config.template.jam"
     requires = "Boost.Build/1.65.1@bincrafters/testing"
 
     def build(self):
         pass
 
     def package(self):
-        self.copy("boostgenerator.py")
+        pass
 
     def package_info(self):
         self.cpp_info.includedirs = []
         self.cpp_info.libdirs = []
         self.cpp_info.bindirs = []
         self.user_info.b2_command = "b2 -j%s -a --hash=yes --debug-configuration --layout=system" % (tools.cpu_count())
-        self.env_info.PYTHONPATH.append(self.package_folder)
 
 # Below is the actual generator code
 
