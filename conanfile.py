@@ -260,7 +260,7 @@ class boost(Generator):
     def zlib_lib_paths(self):
         try:
             if self.conanfile.options.use_zlib:
-                return '"{0}"'.format('" "'.join(self.deps_build_info["zlib"].lib_paths))
+                return '"{0}"'.format('" "'.join(self.deps_build_info["zlib"].lib_paths)).replace('\\', '/')
         except:
             pass
         return ""
@@ -269,7 +269,7 @@ class boost(Generator):
     def zlib_include_paths(self):
         try:
             if self.conanfile.options.use_zlib:
-                return '"{0}"'.format('" "'.join(self.deps_build_info["zlib"].include_paths))
+                return '"{0}"'.format('" "'.join(self.deps_build_info["zlib"].include_paths)).replace('\\', '/')
         except:
             pass
         return ""
@@ -278,7 +278,7 @@ class boost(Generator):
     def bzip2_lib_paths(self):
         try:
             if self.conanfile.options.use_zlib:
-                return '"{0}"'.format('" "'.join(self.deps_build_info["bzip2"].lib_paths))
+                return '"{0}"'.format('" "'.join(self.deps_build_info["bzip2"].lib_paths)).replace('\\', '/')
         except:
             pass
         return ""
@@ -287,7 +287,7 @@ class boost(Generator):
     def bzip2_include_paths(self):
         try:
             if self.conanfile.options.use_bzip2:
-                return '"{0}"'.format('" "'.join(self.deps_build_info["bzip2"].include_paths))
+                return '"{0}"'.format('" "'.join(self.deps_build_info["bzip2"].include_paths)).replace('\\', '/')
         except:
             pass
         return ""
@@ -296,7 +296,7 @@ class boost(Generator):
     def lzma_lib_paths(self):
         try:
             if self.conanfile.options.use_lzma:
-                return '"{0}"'.format('" "'.join(self.deps_build_info["lzma"].lib_paths))
+                return '"{0}"'.format('" "'.join(self.deps_build_info["lzma"].lib_paths)).replace('\\', '/')
         except:
             pass
         return ""
@@ -305,7 +305,7 @@ class boost(Generator):
     def lzma_include_paths(self):
         try:
             if self.conanfile.options.use_lzma:
-                return '"{0}"'.format('" "'.join(self.deps_build_info["lzma"].include_paths))
+                return '"{0}"'.format('" "'.join(self.deps_build_info["lzma"].include_paths)).replace('\\', '/')
         except:
             pass
         return ""
