@@ -1,6 +1,6 @@
 ## A Conan.io Generator for the Boost C++ Libraries.
 
-[Conan.io](https://conan.io) package for [Boost Libraries](http://www.boost.org/doc/libs/1_65_1/libs/libraries.htm).
+[Conan.io](https://conan.io) package for [Boost Libraries](http://www.boost.org/doc/libs/1_66_0/libs/libraries.htm).
 
 The packages generated with this **conanfile** can be found in [Bintray](https://bintray.com/bincrafters/public-conan/Boost.Generator%3Abincrafters).
 
@@ -35,7 +35,7 @@ Generators are distributed just like other packages, and used in other packages 
 The following should exist in `conanfile.py` for any Boost library which is not a header-only library, and needs to be built. 
 
 ```
-	build_requires = "Boost.Generator/1.65.1@bincrafters/stable"
+	build_requires = "Boost.Generator/1.66.0@bincrafters/stable"
     generators = "boost"
 ```
 	
@@ -55,7 +55,7 @@ The following command both runs all the steps of the conan file, and publishes t
 
 ## Upload to bintray 
 
-    $ conan upload --all --remote bincrafters Boost.Generator/1.65.1@bincrafters/stable
+    $ conan upload --all --remote bincrafters Boost.Generator/1.66.0@bincrafters/stable
 
 ### License
 [Boost](www.boost.org/LICENSE_1_0.txt)
