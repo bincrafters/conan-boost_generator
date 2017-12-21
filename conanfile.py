@@ -13,12 +13,12 @@ import os
 
 class BoostGenerator(ConanFile):
     name = "Boost.Generator"
-    version = "1.65.1"
+    version = "1.66.0"
     url = "https://github.com/bincrafters/conan-boost-generator"
-    description = "Conan build generator for boost libraries http://www.boost.org/doc/libs/1_65_1/libs/libraries.htm"
+    description = "Conan build generator for boost libraries http://www.boost.org/doc/libs/1_66_0/libs/libraries.htm"
     license = "BSL"
     exports = "boostcpp.jam", "jamroot.template", "project-config.template.jam"
-    requires = "Boost.Build/1.65.1@bincrafters/testing"
+    requires = "Boost.Build/1.66.0@bincrafters/testing"
 
     def build(self):
         pass
