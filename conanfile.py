@@ -69,7 +69,8 @@ class boost(Generator):
                 .replace("{{{arch_flags}}}", self.b2_arch_flags) \
                 .replace("{{{isysroot}}}", self.b2_isysroot) \
                 .replace("{{{fpic}}}", self.b2_fpic) \
-                .replace("{{{threading}}}", self.b2_threading)
+                .replace("{{{threading}}}", self.b2_threading) \
+                .replace("{{{threadapi}}}", self.b2_threadapi)
 
             return {
                 "jamroot" : jamroot_content,
@@ -443,3 +444,16 @@ class boost(Generator):
         except:
             pass
         return 'multi'
+    
+    @property
+    def b2_threadapi(self):
+        try:
+            result = str(self.conanfile.options.threadapi)
+            if result != 'default':
+                return result
+        except:
+            pass
+        if self.b2_os == 'windows':
+            return 'win32'
+        else:
+            return 'pthread'
