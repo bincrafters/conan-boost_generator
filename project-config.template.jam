@@ -25,9 +25,10 @@ else
 }
 local lzma_lib_paths = {{{lzma_lib_paths}}} ;
 local lzma_include_paths = {{{lzma_include_paths}}} ;
+local lzma_name = {{{lzma_name}}} ;
 if $(lzma_include_paths)
 {
-    using lzma : : <include>$(lzma_include_paths) <search>$(lzma_lib_paths) ;
+    using lzma : : <include>$(lzma_include_paths) <search>$(lzma_lib_paths) <name>$(lzma_name) ;
 }
 else
 {

@@ -132,6 +132,7 @@ class boost(Generator):
             .replace("{{{bzip2_include_paths}}}", self.bzip2_include_paths) \
             .replace("{{{lzma_lib_paths}}}", self.lzma_lib_paths) \
             .replace("{{{lzma_include_paths}}}", self.lzma_include_paths) \
+            .replace("{{{lzma_name}}}", self.lzma_lib_name) \
             .replace("{{{python_exec}}}", self.b2_python_exec) \
             .replace("{{{python_version}}}", self.b2_python_version) \
             .replace("{{{python_include}}}", self.b2_python_include) \
@@ -306,6 +307,15 @@ class boost(Generator):
         try:
             if self.conanfile.options.use_lzma:
                 return '"{0}"'.format('" "'.join(self.deps_build_info["lzma"].include_paths)).replace('\\', '/')
+        except:
+            pass
+        return ""
+
+    @property
+    def lzma_lib_name(self):
+        try:
+            if self.conanfile.options.use_lzma:
+                return os.path.basename(self.deps_build_info["lzma"].libs[0])
         except:
             pass
         return ""
