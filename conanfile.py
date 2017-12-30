@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from conans.model.conan_generator import Generator
 from conans import ConanFile, tools, load
 from io import StringIO
@@ -12,13 +15,13 @@ import os
 
 
 class BoostGenerator(ConanFile):
-    name = "Boost.Generator"
+    name = "boost_generator"
     version = "1.66.0"
     url = "https://github.com/bincrafters/conan-boost-generator"
     description = "Conan build generator for boost libraries http://www.boost.org/doc/libs/1_66_0/libs/libraries.htm"
     license = "BSL"
     exports = "boostcpp.jam", "jamroot.template", "project-config.template.jam"
-    requires = "Boost.Build/1.66.0@bincrafters/testing"
+    requires = "boost_build/1.66.0@bincrafters/testing"
 
     def build(self):
         pass
@@ -94,7 +97,7 @@ class boost(Generator):
         return boostcpp_content
 
     def get_boost_generator_source_path(self):
-        boost_generator = self.conanfile.deps_cpp_info["Boost.Generator"]
+        boost_generator = self.conanfile.deps_cpp_info["boost_generator"]
         boost_generator_root_path = boost_generator.rootpath
         boost_generator_source_path = os.path.join(boost_generator_root_path, os.pardir, os.pardir, "export")
         return boost_generator_source_path

@@ -1,61 +1,47 @@
-## A Conan.io Generator for the Boost C++ Libraries.
+## Package Status
 
-[Conan.io](https://conan.io) package for [Boost Libraries](http://www.boost.org/doc/libs/1_66_0/libs/libraries.htm).
+| Bintray | Appveyor | Travis | 
+|---------|-----------|--------|
+|BINTRAY_BADGE_URL|APPVEYOR_BADGE_URL|TRAVIS_BADGE_URL|
 
-The packages generated with this **conanfile** can be found in [Bintray](https://bintray.com/bincrafters/public-conan/Boost.Generator%3Abincrafters).
+## Conan.io Information
 
-## To use this package
+Bincrafters packages can be found in the following public Conan repository:
 
-This package is not intended to be used outside of building the Boost libraries for Conan.io. It is also a special Conan package, in that it is a "**Generator**" package.  [Read about creating custom generators for Conan.io here](conanio.readthedocs.io/en/latest/howtos/dyn_generators.html).  
+[Bincrafters Public Conan Repository on Bintray](https://bintray.com/bincrafters/public-conan)
 
-Generators are distributed just like other packages, and used in other packages as `build_requires`.  Notably, this generator is intended to be used specifically with the boost build system as packaged by Bincrafters.  Below is a summary of how the generation and build process work for this generator; we'll use **Boost.System** as an example. 
+*Note: You can click the "Set Me Up" button on the Bintray page above for instructions on using packages from this repository.*
 
-### To build and package Boost.System
-* Look at the recipe for **Boost.System** here: [Boost System Recipe](https://github.com/bincrafters/conan-boost-system)
-* The **Boost.System** library recipe is invoked using `conan create bincrafters/stable`
-* This **Boost.Generator** package is listed in `build_requires`, and thus downloaded
-* The appropriate version of Boost.Build is also downloaded transitively
-* All runtime dependencies listed in `requires` are downloaded
-* This generator's `content` method is invoked, producing the file `jamroot` in a conan build directory
-* Notably, boostcpp.jam is extracted into a conan directory, which is referenced by the build
-* The `build()` step of **Boost.System** is run
-  * This calls the Boost Build binary ("**b2**") from a conan directory
-  * The generated file `jamroot` is passesd as an argument
-* The package step is run, collecting any generated binaries and header files
-* The package for **Boost.System** is stored in the local conan cache
+## Issues
 
-### When **Boost.System** is used as dependency
-* The **Boost.System** recipe is downloaded from conan
-* If the appropriate pre-built binaries are available from the remote repository, they are downloaded
-* If not, the build and package process above is executed, and stored in the local conan cache
+If you wish to report an issue or make a request for a Bincrafters package, please do so here:  
 
+[Bincrafters Community Issues](https://github.com/bincrafters/community/issues)
 
-### Project setup
+## General Information
 
-The following should exist in `conanfile.py` for any Boost library which is not a header-only library, and needs to be built. 
+This GIT repository is managed by the Bincrafters team and holds files related to Conan.io.  For detailed information about Bincrafters and Conan.io, please visit the following resources: 
 
-```
-	build_requires = "Boost.Generator/1.66.0@bincrafters/stable"
-    generators = "boost"
-```
+[Bincrafters Wiki - Common README](https://github.com/bincrafters/community/wiki/Common-README.md)
+
+[Bincrafters Technical Documentation](http://bincrafters.readthedocs.io/en/latest/)
+
+[Bincrafters Blog](https://bincrafters.github.io)
+
+## License Information
+
+Bincrafters packages are hosted on [Bintray](https://bintray.com) and contain Open-Source software which is licensed by the software's maintainers and NOT Bincrafters.  For each Open-Source package published by Bincrafters, the packaging process obtains the required license files along with the original source files from the maintainer, and includes these license files in the generated Conan packages.  
+
+The contents of this GIT repository are completely separate from the software being packaged and therefor licensed separately.  The license for all files contained in this GIT repository are defined in the [LICENSE.md](LICENSE.md) file in this repository.  The licenses included with all Conan packages published by Bincrafters can be found in the Conan package directories in the following locations, relative to the Conan Cache root (`~/.conan` by default): 
+
+### License(s) for packaged software: 
+
+    ~/.conan/data/<pkg_name>/<pkg_version>/bincrafters/package/<random_package_id>/license/<LICENSE_FILES_HERE>
+
+*Note :   The most common filenames for OSS licenses are `LICENSE` AND `COPYING` without file extensions.*
 	
-## For Packagers: Publish this Package
+### License for Bincrafters recipe: 
 
-The example below shows the commands used to publish to bincrafters conan repository. To publish to your own conan respository (for example, after forking this git repository), you will need to change the commands below accordingly. 
+    ~/.conan/data/<pkg_name>/<pkg_version>/bincrafters/export/LICENSE.md 
 
-## Build  and package 
-
-The following command both runs all the steps of the conan file, and publishes the package to the local system cache.  This includes downloading dependencies from `build_requires` and `requires` , and then running the `build()` and `package()` methods. 
-
-    $ conan create bincrafters/stable
 	
-## Add bincrafters repository to your "remotes"
-
-	$ conan remote add bincrafters "https://api.bintray.com/conan/bincrafters/public-conan"
-
-## Upload to bintray 
-
-    $ conan upload --all --remote bincrafters Boost.Generator/1.66.0@bincrafters/stable
-
-### License
-[Boost](www.boost.org/LICENSE_1_0.txt)
