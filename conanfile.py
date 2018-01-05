@@ -451,11 +451,6 @@ class boost(Generator):
     
     @property
     def b2_threading(self):
-        try:
-            if not self.settings.compiler.threads:
-                return 'single'
-        except:
-            pass
         return 'multi'
     
     @property
@@ -464,6 +459,13 @@ class boost(Generator):
             result = str(self.conanfile.options.threadapi)
             if result != 'default':
                 return result
+        except:
+            pass
+        try:
+            if str(self.settings.threads) == 'posix':
+                return 'pthread'
+            if str(self.settings.threads) == 'win32':
+                return 'win32'
         except:
             pass
         if self.b2_os == 'windows':
