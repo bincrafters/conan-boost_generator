@@ -2,7 +2,7 @@
 
 | Bintray | Appveyor | Travis | 
 |---------|-----------|--------|
-|BINTRAY_BADGE_URL|APPVEYOR_BADGE_URL|TRAVIS_BADGE_URL|
+|[ ![Download](https://api.bintray.com/packages/bincrafters/public-conan/boost_generator%3Abincrafters/images/download.svg) ](https://bintray.com/bincrafters/public-conan/boost_generator%3Abincrafters/_latestVersion)|[![Build status](https://ci.appveyor.com/api/projects/status/3obt67i66rly9f27?svg=true)](https://ci.appveyor.com/project/BinCrafters/conan-boost-generator)|[![Build Status](https://travis-ci.org/bincrafters/conan-boost_generator.svg?branch=testing%2F1.66.0)](https://travis-ci.org/bincrafters/conan-boost_generator)|
 
 ## Conan.io Information
 
