@@ -131,6 +131,7 @@ local LIBPATH = {{{libpath}}} ;
 project boost
 :   requirements
     <define>BOOST_ALL_NO_LIB=1
+    {{{glibcxxabi}}}
     <tag>@$(__name__).tag
     <link>shared,<runtime-link>static:<build>no
     <include>$(DEP_INCLUDES)
