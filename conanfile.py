@@ -366,8 +366,10 @@ class boost(Generator):
 
     @property
     def b2_python_lib(self):
-        stdlib_dir = os.path.dirname(self.get_python_path("stdlib")).replace('\\', '/')
-        return stdlib_dir
+        stdlib_dir = os.path.dirname(self.get_python_path("stdlib"))
+        if self.settings.os == "Windows":
+            stdlib_dir = ""
+        return stdlib_dir.replace('\\', '/')
 
     def get_python_path(self, dir_name):
         cmd = "import sysconfig; print(sysconfig.get_path('{0}'))".format(dir_name)
