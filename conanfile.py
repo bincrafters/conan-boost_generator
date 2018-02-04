@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from conans.model.conan_generator import Generator
 from conans import ConanFile, tools, load
 from io import StringIO
@@ -12,13 +15,13 @@ import os
 
 
 class BoostGenerator(ConanFile):
-    name = "Boost.Generator"
-    version = "1.65.1"
-    url = "https://github.com/bincrafters/conan-boost-generator"
-    description = "Conan build generator for boost libraries http://www.boost.org/doc/libs/1_65_1/libs/libraries.htm"
+    name = "boost_generator"
+    version = "1.66.0"
+    url = "https://github.com/bincrafters/conan-boost_generator"
+    description = "Conan build generator for boost libraries http://www.boost.org/doc/libs/1_66_0/libs/libraries.htm"
     license = "BSL"
     exports = "boostcpp.jam", "jamroot.template", "project-config.template.jam"
-    requires = "Boost.Build/1.65.1@bincrafters/testing"
+    requires = "boost_build/1.66.0@bincrafters/testing"
 
     def build(self):
         pass
@@ -69,7 +72,8 @@ class boost(Generator):
                 .replace("{{{arch_flags}}}", self.b2_arch_flags) \
                 .replace("{{{isysroot}}}", self.b2_isysroot) \
                 .replace("{{{fpic}}}", self.b2_fpic) \
-                .replace("{{{threading}}}", self.b2_threading)
+                .replace("{{{threading}}}", self.b2_threading) \
+                .replace("{{{threadapi}}}", self.b2_threadapi)
 
             return {
                 "jamroot" : jamroot_content,
@@ -93,7 +97,7 @@ class boost(Generator):
         return boostcpp_content
 
     def get_boost_generator_source_path(self):
-        boost_generator = self.conanfile.deps_cpp_info["Boost.Generator"]
+        boost_generator = self.conanfile.deps_cpp_info["boost_generator"]
         boost_generator_root_path = boost_generator.rootpath
         boost_generator_source_path = os.path.join(boost_generator_root_path, os.pardir, os.pardir, "export")
         return boost_generator_source_path
@@ -362,8 +366,10 @@ class boost(Generator):
 
     @property
     def b2_python_lib(self):
-        stdlib_dir = os.path.dirname(self.get_python_path("stdlib")).replace('\\', '/')
-        return stdlib_dir
+        stdlib_dir = os.path.dirname(self.get_python_path("stdlib"))
+        if self.settings.os == "Windows":
+            stdlib_dir = ""
+        return stdlib_dir.replace('\\', '/')
 
     def get_python_path(self, dir_name):
         cmd = "import sysconfig; print(sysconfig.get_path('{0}'))".format(dir_name)
@@ -447,9 +453,24 @@ class boost(Generator):
     
     @property
     def b2_threading(self):
+        return 'multi'
+    
+    @property
+    def b2_threadapi(self):
         try:
-            if not self.settings.compiler.threads:
-                return 'single'
+            result = str(self.conanfile.options.threadapi)
+            if result != 'default':
+                return result
         except:
             pass
-        return 'multi'
+        try:
+            if str(self.settings.threads) == 'posix':
+                return 'pthread'
+            if str(self.settings.threads) == 'win32':
+                return 'win32'
+        except:
+            pass
+        if self.b2_os == 'windows':
+            return 'win32'
+        else:
+            return 'pthread'
