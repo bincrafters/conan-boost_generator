@@ -127,6 +127,7 @@ constant BOOST_JAMROOT_MODULE : $(__name__) ;
 boostcpp.set-version $(BOOST_VERSION) ;
 
 local LIBPATH = {{{libpath}}} ;
+local THREADAPI = {{{threadapi}}} ;
 
 project boost
 :   requirements
@@ -138,7 +139,7 @@ project boost
     <target-os>darwin:<cxxflags>-std=c++11
     <target-os>darwin:<linkflags>-std=c++11
     <library-path>$(LIBPATH)
-    <threadapi>{{{threadapi}}}
+    <threadapi>$(THREADAPI)
     {{{libcxx}}}
     {{{arch_flags}}}
     {{{isysroot}}}
