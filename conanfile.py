@@ -423,9 +423,9 @@ class boost(Generator):
 
     def command_output(self, command):
         if sys.version_info.major >= 3:
-            return subprocess.check_output(command, shell=False, encoding=locale.getpreferredencoding()).strip()
+            return subprocess.check_output(command, shell=False, encoding=locale.getpreferredencoding()).strip().decode()
         else:
-            return subprocess.check_output(command, shell=False).strip()
+            return subprocess.check_output(command, shell=False).strip().decode()
 
     @property
     def apply_isysroot(self):
