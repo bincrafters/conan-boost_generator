@@ -461,16 +461,17 @@ class boost(Generator):
             result = str(self.conanfile.options.threadapi)
             if result != 'default':
                 return result
-        except:
-            pass
-        try:
-            if str(self.settings.threads) == 'posix':
-                return 'pthread'
-            if str(self.settings.threads) == 'win32':
+            try:
+                if str(self.settings.threads) == 'posix':
+                    return 'pthread'
+                if str(self.settings.threads) == 'win32':
+                    return 'win32'
+            except:
+                pass
+            if self.b2_os == 'windows':
                 return 'win32'
+            else:
+                return 'pthread'
         except:
             pass
-        if self.b2_os == 'windows':
-            return 'win32'
-        else:
-            return 'pthread'
+        return ""
