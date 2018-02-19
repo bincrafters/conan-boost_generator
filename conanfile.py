@@ -5,6 +5,7 @@ from conans.model.conan_generator import Generator
 from conans import ConanFile, tools, load
 from io import StringIO
 import glob
+import locale
 import subprocess
 import os
 
@@ -420,7 +421,7 @@ class boost(Generator):
         return None
 
     def command_output(self, command):
-        return subprocess.check_output(command, shell=False).strip()
+        return subprocess.check_output(command, shell=False, encoding=locale.getpreferredencoding()).strip()
 
     @property
     def apply_isysroot(self):
