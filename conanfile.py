@@ -8,6 +8,7 @@ import glob
 import locale
 import subprocess
 import os
+import sys
 
 # This is the normal packaging info since generators
 # get published just like other packages. Although
@@ -421,7 +422,10 @@ class boost(Generator):
         return None
 
     def command_output(self, command):
-        return subprocess.check_output(command, shell=False, encoding=locale.getpreferredencoding()).strip()
+        if sys.version_info.major >= 3:
+            return subprocess.check_output(command, shell=False, encoding=locale.getpreferredencoding()).strip()
+        else:
+            return subprocess.check_output(command, shell=False).strip()
 
     @property
     def apply_isysroot(self):
