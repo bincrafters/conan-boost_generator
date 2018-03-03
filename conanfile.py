@@ -3,7 +3,6 @@
 
 from conans.model.conan_generator import Generator
 from conans import ConanFile, tools, load
-from io import StringIO
 import glob
 import locale
 import subprocess
@@ -340,50 +339,34 @@ class boost(Generator):
                 return '<cxxflags>-stdlib=libstdc++ <linkflags>-stdlib=libstdc++'
         return ''
 
+    _python_dep = "python_dev_config"
+
     @property
     def b2_python_exec(self):
         try:
-            pyexec = str(self.conanfile.options.python)
-            output = StringIO()
-            self.conanfile.run('{0} -c "import sys; print(sys.executable)"'.format(pyexec), output=output)
-            return '"' + output.getvalue().strip().replace("\\", "/") + '"'
+            return self.conanfile.deps_user_info[self._python_dep].python_exec
         except:
             return ""
 
-    _python_version = ""
-
     @property
     def b2_python_version(self):
-        cmd = "from sys import *; print('%d.%d' % (version_info[0],version_info[1]))"
-        self._python_version = self._python_version or self.run_python_command(cmd)
-        return self._python_version
+        try:
+            return self.conanfile.deps_user_info[self._python_dep].python_version
+        except:
+            return ""
 
     @property
     def b2_python_include(self):
-        pyinclude = self.get_python_path("include")
-        if not os.path.exists(os.path.join(pyinclude, 'pyconfig.h')):
+        try:
+            return self.conanfile.deps_user_info[self._python_dep].python_include_dir
+        except:
             return ""
-        else:
-            return pyinclude.replace('\\', '/')
 
     @property
     def b2_python_lib(self):
-        stdlib_dir = os.path.dirname(self.get_python_path("stdlib"))
-        if self.settings.os == "Windows":
-            stdlib_dir = ""
-        return stdlib_dir.replace('\\', '/')
-
-    def get_python_path(self, dir_name):
-        cmd = "import sysconfig; print(sysconfig.get_path('{0}'))".format(dir_name)
-        return self.run_python_command(cmd)
-
-    def run_python_command(self, cmd):
-        pyexec = self.b2_python_exec
-        if pyexec:
-            output = StringIO()
-            self.conanfile.run('{0} -c "{1}"'.format(pyexec, cmd), output=output)
-            return output.getvalue().strip()
-        else:
+        try:
+            return self.conanfile.deps_user_info[self._python_dep].python_lib_dir
+        except:
             return ""
 
     @property
