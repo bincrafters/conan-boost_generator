@@ -70,6 +70,7 @@ class boost(Generator):
                 .replace("{{{toolset_version}}}", self.b2_toolset_version) \
                 .replace("{{{toolset_exec}}}", self.b2_toolset_exec) \
                 .replace("{{{libcxx}}}", self.b2_libcxx) \
+                .replace("{{{glibcxxabi}}}", self.b2_glibcxxabi) \
                 .replace("{{{libpath}}}", self.b2_icu_lib_paths) \
                 .replace("{{{arch_flags}}}", self.b2_arch_flags) \
                 .replace("{{{isysroot}}}", self.b2_isysroot) \
@@ -338,6 +339,15 @@ class boost(Generator):
                 return '<cxxflags>-stdlib=libstdc++ <linkflags>-stdlib=libstdc++ <cxxflags>-std=c++11 <linkflags>-std=c++11'
             else:
                 return '<cxxflags>-stdlib=libstdc++ <linkflags>-stdlib=libstdc++'
+        return ''
+
+    @property
+    def b2_glibcxxabi(self):
+        if self.b2_toolset == 'gcc' or self.b2_toolset == 'clang':
+            if str(self.settings.compiler.libcxx) == 'libstdc++11':
+                return '<define>_GLIBCXX_USE_CXX11_ABI=1'
+            if str(self.settings.compiler.libcxx) == 'libstdc++':
+                return '<define>_GLIBCXX_USE_CXX11_ABI=0'
         return ''
 
     @property
