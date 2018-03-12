@@ -344,28 +344,28 @@ class boost(Generator):
     @property
     def b2_python_exec(self):
         try:
-            return self.conanfile.deps_user_info[self._python_dep].python_exec
+            return self.conanfile.deps_user_info[self._python_dep].python_exec.replace('\\', '/')
         except:
             return ""
 
     @property
     def b2_python_version(self):
         try:
-            return self.conanfile.deps_user_info[self._python_dep].python_version
+            return self.conanfile.deps_user_info[self._python_dep].python_version.replace('\\', '/')
         except:
             return ""
 
     @property
     def b2_python_include(self):
         try:
-            return self.conanfile.deps_user_info[self._python_dep].python_include_dir
+            return self.conanfile.deps_user_info[self._python_dep].python_include_dir.replace('\\', '/')
         except:
             return ""
 
     @property
     def b2_python_lib(self):
         try:
-            return self.conanfile.deps_user_info[self._python_dep].python_lib_dir
+            return self.conanfile.deps_user_info[self._python_dep].python_lib_dir.replace('\\', '/')
         except:
             return ""
 
