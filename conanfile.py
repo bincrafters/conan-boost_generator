@@ -17,24 +17,12 @@ import sys
 
 class BoostGenerator(ConanFile):
     name = "boost_generator"
-    version = "1.66.0"
+    version = "1.67.0"
     url = "https://github.com/bincrafters/conan-boost_generator"
-    description = "Conan build generator for boost libraries http://www.boost.org/doc/libs/1_66_0/libs/libraries.htm"
+    description = "Conan build generator for boost libraries http://www.boost.org/doc/libs/1_67_0/libs/libraries.htm"
     license = "BSL"
     exports = "boostcpp.jam", "jamroot.template", "project-config.template.jam"
-    requires = "boost_build/1.66.0@bincrafters/testing"
-
-    def build(self):
-        pass
-
-    def package(self):
-        pass
-
-    def package_info(self):
-        self.cpp_info.includedirs = []
-        self.cpp_info.libdirs = []
-        self.cpp_info.bindirs = []
-        self.user_info.b2_command = "b2 -j%s -a --hash=yes --debug-configuration --layout=system" % (tools.cpu_count())
+    requires = "boost_build/1.67.0@bincrafters/testing"
 
 # Below is the actual generator code
 
@@ -283,7 +271,7 @@ class boost(Generator):
     @property
     def bzip2_lib_paths(self):
         try:
-            if self.conanfile.options.use_zlib:
+            if self.conanfile.options.use_bzip2:
                 return '"{0}"'.format('" "'.join(self.deps_build_info["bzip2"].lib_paths)).replace('\\', '/')
         except:
             pass

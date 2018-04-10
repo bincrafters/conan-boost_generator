@@ -139,6 +139,10 @@ project boost
     <target-os>darwin:<linkflags>-std=c++11
     <library-path>$(LIBPATH)
     <threadapi>{{{threadapi}}}
+    # This is a terrible hack around a possible b2 bug that prevents the
+    # link-flags specified in usage requirements of /python//python_for_extensions
+    # from getting applied.
+    <link>shared,<target-os>darwin,<toolset>clang:<linkflags>"-undefined dynamic_lookup"
     {{{libcxx}}}
     {{{arch_flags}}}
     {{{isysroot}}}
@@ -244,7 +248,8 @@ rule export-lib-jamroot ( targets * : sources * : properties * )
     local dollar = "\$" ;
     local usage = "$(LIBRARY_USAGE($(library)):J= )" ;
     print.text "project.register-id /boost/$(library) : $(dollar)(__name__) ;" ;
-    print.text "lib boost_$(library) : : <name>boost_$(library) <search>. : : $(usage:E=) ;" ;
+    print.text "local usage = $(usage:E=) ;" ;
+    #print.text "lib boost_$(library) : : <name>boost_$(library) <search>. : : $(usage:E=) ;" ;
     print.text "" ;
 }
 
