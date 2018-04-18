@@ -133,8 +133,10 @@ class boost(Generator):
             .replace("{{{toolset_exec}}}", self.b2_toolset_exec) \
             .replace("{{{zlib_lib_paths}}}", self.zlib_lib_paths) \
             .replace("{{{zlib_include_paths}}}", self.zlib_include_paths) \
+            .replace("{{{zlib_name}}}", self.zlib_lib_name) \
             .replace("{{{bzip2_lib_paths}}}", self.bzip2_lib_paths) \
             .replace("{{{bzip2_include_paths}}}", self.bzip2_include_paths) \
+            .replace("{{{bzip2_name}}}", self.bzip2_lib_name) \
             .replace("{{{lzma_lib_paths}}}", self.lzma_lib_paths) \
             .replace("{{{lzma_include_paths}}}", self.lzma_include_paths) \
             .replace("{{{lzma_name}}}", self.lzma_lib_name) \
@@ -281,9 +283,18 @@ class boost(Generator):
         return ""
 
     @property
-    def bzip2_lib_paths(self):
+    def zlib_lib_name(self):
         try:
             if self.conanfile.options.use_zlib:
+                return os.path.basename(self.deps_build_info["zlib"].libs[0])
+        except:
+            pass
+        return ""
+
+    @property
+    def bzip2_lib_paths(self):
+        try:
+            if self.conanfile.options.use_bzip2:
                 return '"{0}"'.format('" "'.join(self.deps_build_info["bzip2"].lib_paths)).replace('\\', '/')
         except:
             pass
@@ -294,6 +305,15 @@ class boost(Generator):
         try:
             if self.conanfile.options.use_bzip2:
                 return '"{0}"'.format('" "'.join(self.deps_build_info["bzip2"].include_paths)).replace('\\', '/')
+        except:
+            pass
+        return ""
+
+    @property
+    def bzip2_lib_name(self):
+        try:
+            if self.conanfile.options.use_bzip2:
+                return os.path.basename(self.deps_build_info["bzip2"].libs[0])
         except:
             pass
         return ""
