@@ -50,7 +50,7 @@ class boost(Generator):
         # print("@@@@@@@@ BoostGenerator:boost.content: " + str(self.conanfile))
         try:
             jam_include_paths = ' '.join('"' + path + '"' for path in self.conanfile.deps_cpp_info.includedirs).replace('\\', '/')
-         
+
             libraries_to_build = " ".join(self.conanfile.lib_short_names)
 
             jamroot_content = self.get_template_content() \
@@ -451,18 +451,18 @@ class boost(Generator):
         if self.b2_os != 'windows' and self.b2_toolset in ['gcc', 'clang'] and self.b2_link == 'static':
             return '<flags>-fPIC\n<cxxflags>-fPIC'
         return ''
-    
+
     @property
     def b2_mpicxx(self):
         try:
             return str(self.conanfile.options.mpicxx)
         except:
             return ''
-    
+
     @property
     def b2_threading(self):
         return 'multi'
-    
+
     @property
     def b2_threadapi(self):
         try:
