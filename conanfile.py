@@ -212,16 +212,24 @@ class boost(Generator):
     def b2_toolset_exec(self):
         if self.b2_os in ['linux', 'freebsd', 'solaris', 'darwin', 'android'] or \
                 (self.b2_os == 'windows' and self.b2_toolset == 'gcc'):
-            version = str(self.settings.compiler.version).split('.')
-            result_x = self.b2_toolset.replace('gcc', 'g++') + "-" + version[0]
-            result_xy = result_x
-            if len(version) > 1:
-                result_xy += version[1] if version[1] != '0' else ''
 
             class dev_null(object):
 
                 def write(self, message):
                     pass
+
+
+            if 'CXX' in os.environ:
+                try:
+                    self.conanfile.run(os.environ['CXX'] + ' --version', output=dev_null())
+                    return os.environ['CXX']
+                except:
+                    pass
+            version = str(self.settings.compiler.version).split('.')
+            result_x = self.b2_toolset.replace('gcc', 'g++') + "-" + version[0]
+            result_xy = result_x
+            if len(version) > 1:
+                result_xy += version[1] if version[1] != '0' else ''
 
             try:
                 self.conanfile.run(result_xy + " --version", output=dev_null())
