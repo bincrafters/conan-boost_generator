@@ -74,7 +74,8 @@ class boost(Generator):
                 .replace("{{{isysroot}}}", self.b2_isysroot) \
                 .replace("{{{fpic}}}", self.b2_fpic) \
                 .replace("{{{threading}}}", self.b2_threading) \
-                .replace("{{{threadapi}}}", self.b2_threadapi)
+                .replace("{{{threadapi}}}", self.b2_threadapi) \
+                .replace("{{{profile_flags}}}", self.b2_profile_flags)
 
             return {
                 "jamroot" : jamroot_content,
@@ -144,7 +145,8 @@ class boost(Generator):
             .replace("{{{python_version}}}", self.b2_python_version) \
             .replace("{{{python_include}}}", self.b2_python_include) \
             .replace("{{{python_lib}}}", self.b2_python_lib) \
-            .replace("{{{mpicxx}}}", self.b2_mpicxx)
+            .replace("{{{mpicxx}}}", self.b2_mpicxx) \
+            .replace("{{{profile_tools}}}", self.b2_profile_tools)
 
     @property
     def b2_os(self):
@@ -490,3 +492,40 @@ class boost(Generator):
             return 'win32'
         else:
             return 'pthread'
+
+    @property
+    def b2_profile_flags(self):
+        def format_b2_flags(token, flags):
+            return ' '.join(['%s"%s"' % (token, flag) for flag in flags.split()])
+
+        if self.b2_toolset == 'gcc' or self.b2_toolset == 'clang':
+            additional_flags = []
+            if 'CFLAGS' in os.environ:
+                additional_flags.append(format_b2_flags('<cflags>', os.environ['CFLAGS']))
+            if 'CXXFLAGS' in os.environ:
+                additional_flags.append(format_b2_flags('<cxxflags>', os.environ['CXXFLAGS']))
+            if 'LDFLAGS' in os.environ:
+                additional_flags.append(format_b2_flags('<linkflags>', os.environ['LDFLAGS']))
+            return '\n'.join(additional_flags)
+        else:
+            return ''
+
+    @property
+    def b2_profile_tools(self):
+        if self.b2_toolset == 'gcc' or self.b2_toolset == 'clang':
+            additional_flags = []
+            if 'CONAN_CMAKE_FIND_ROOT_PATH' in os.environ:
+                additional_flags.append('<root>%s' % os.environ['CONAN_CMAKE_FIND_ROOT_PATH'])
+            if 'AR' in os.environ:
+                additional_flags.append('<archiver>%s' % os.environ['AR'])
+            if 'RANLIB' in os.environ:
+                additional_flags.append('<ranlib>%s' % os.environ['RANLIB'])
+            if self.b2_os == 'darwin' or self.b2_os == 'iphone':
+                if 'STRIP' in os.environ:
+                    additional_flags.append('<striper>%s' % os.environ['STRIP'])
+            additional_flags = ' '.join(additional_flags)
+            if len(additional_flags):
+                additional_flags = ': ' + additional_flags
+            return additional_flags
+        else:
+            return ''

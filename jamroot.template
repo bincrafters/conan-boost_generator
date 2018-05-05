@@ -143,6 +143,7 @@ project boost
     {{{arch_flags}}}
     {{{isysroot}}}
     {{{fpic}}}
+    {{{profile_flags}}}
 :   build-dir bin
 :   default-build {{{variant}}}
     <target-os>{{{os}}}
