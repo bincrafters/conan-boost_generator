@@ -347,10 +347,10 @@ class boost(Generator):
 
     @property
     def b2_libcxx(self):
-        if self.b2_toolset == 'gcc':
+        if self.b2_toolset == 'gcc' and self.b2_os != 'android':
             if str(self.settings.compiler.libcxx) == 'libstdc++11':
                 return '<cxxflags>-std=c++11 <linkflags>-std=c++11'
-        elif self.b2_toolset == 'clang':
+        elif self.b2_toolset == 'clang' and self.b2_os != 'android':
             if str(self.settings.compiler.libcxx) == 'libc++':
                 return '<cxxflags>-stdlib=libc++ <linkflags>-stdlib=libc++'
             elif str(self.settings.compiler.libcxx) == 'libstdc++11':
