@@ -514,8 +514,8 @@ class boost(Generator):
     def b2_profile_tools(self):
         if self.b2_toolset == 'gcc' or self.b2_toolset == 'clang':
             additional_flags = []
-            if 'CONAN_CMAKE_FIND_ROOT_PATH' in os.environ:
-                additional_flags.append('<root>%s' % os.environ['CONAN_CMAKE_FIND_ROOT_PATH'])
+            if 'SYSROOT' in os.environ:
+                additional_flags.append('<root>%s' % os.environ['SYSROOT'])
             if 'AR' in os.environ:
                 additional_flags.append('<archiver>%s' % os.environ['AR'])
             if 'RANLIB' in os.environ:
