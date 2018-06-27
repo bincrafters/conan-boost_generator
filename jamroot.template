@@ -131,15 +131,13 @@ local LIBPATH = {{{libpath}}} ;
 project boost
 :   requirements
     <define>BOOST_ALL_NO_LIB=1
+    {{{libcxx}}}
     <tag>@$(__name__).tag
     <link>shared,<runtime-link>static:<build>no
     <include>$(DEP_INCLUDES)
     <include>$(LIBRARIES)/include
-    <target-os>darwin:<cxxflags>-std=c++11
-    <target-os>darwin:<linkflags>-std=c++11
     <library-path>$(LIBPATH)
     <threadapi>{{{threadapi}}}
-    {{{libcxx}}}
     {{{arch_flags}}}
     {{{isysroot}}}
     {{{fpic}}}

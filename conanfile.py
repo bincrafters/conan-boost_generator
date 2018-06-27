@@ -329,15 +329,17 @@ class boost(Generator):
     @property
     def b2_libcxx(self):
         if self.b2_toolset == 'gcc':
-            if str(self.settings.compiler.libcxx) == 'libstdc++11':
-                return '<cxxflags>-std=c++11 <linkflags>-std=c++11'
-        elif self.b2_toolset == 'clang':
-            if str(self.settings.compiler.libcxx) == 'libc++':
-                return '<cxxflags>-stdlib=libc++ <linkflags>-stdlib=libc++'
-            elif str(self.settings.compiler.libcxx) == 'libstdc++11':
-                return '<cxxflags>-stdlib=libstdc++ <linkflags>-stdlib=libstdc++ <cxxflags>-std=c++11 <linkflags>-std=c++11'
+            if self.settings.compiler.libcxx == 'libstdc++11':
+                return '<define>_GLIBCXX_USE_CXX11_ABI=1'
             else:
-                return '<cxxflags>-stdlib=libstdc++ <linkflags>-stdlib=libstdc++'
+                return '<define>_GLIBCXX_USE_CXX11_ABI=0'
+        elif self.b2_toolset == 'clang':
+            if self.settings.compiler.libcxx == 'libc++':
+                return '<cxxflags>-stdlib=libc++ <linkflags>-stdlib=libc++'
+            elif self.settings.compiler.libcxx == 'libstdc++11':
+                return '<cxxflags>-stdlib=libstdc++ <linkflags>-stdlib=libstdc++ <define>_GLIBCXX_USE_CXX11_ABI=1'
+            else:
+                return '<cxxflags>-stdlib=libstdc++ <linkflags>-stdlib=libstdc++ <define>_GLIBCXX_USE_CXX11_ABI=0'
         return ''
 
     @property
