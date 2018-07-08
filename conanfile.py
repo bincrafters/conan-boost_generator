@@ -3,7 +3,6 @@
 
 from conans.model.conan_generator import Generator
 from conans import ConanFile, tools, load
-from io import StringIO
 import glob
 import locale
 import subprocess
@@ -51,7 +50,7 @@ class boost(Generator):
         # print("@@@@@@@@ BoostGenerator:boost.content: " + str(self.conanfile))
         try:
             jam_include_paths = ' '.join('"' + path + '"' for path in self.conanfile.deps_cpp_info.includedirs).replace('\\', '/')
-         
+
             libraries_to_build = " ".join(self.conanfile.lib_short_names)
 
             jamroot_content = self.get_template_content() \
@@ -70,12 +69,15 @@ class boost(Generator):
                 .replace("{{{toolset_version}}}", self.b2_toolset_version) \
                 .replace("{{{toolset_exec}}}", self.b2_toolset_exec) \
                 .replace("{{{libcxx}}}", self.b2_libcxx) \
+                .replace("{{{cxxstd}}}", self.b2_cxxstd) \
+                .replace("{{{cxxabi}}}", self.b2_cxxabi) \
                 .replace("{{{libpath}}}", self.b2_icu_lib_paths) \
                 .replace("{{{arch_flags}}}", self.b2_arch_flags) \
                 .replace("{{{isysroot}}}", self.b2_isysroot) \
                 .replace("{{{fpic}}}", self.b2_fpic) \
                 .replace("{{{threading}}}", self.b2_threading) \
-                .replace("{{{threadapi}}}", self.b2_threadapi)
+                .replace("{{{threadapi}}}", self.b2_threadapi) \
+                .replace("{{{profile_flags}}}", self.b2_profile_flags)
 
             return {
                 "jamroot" : jamroot_content,
@@ -134,8 +136,10 @@ class boost(Generator):
             .replace("{{{toolset_exec}}}", self.b2_toolset_exec) \
             .replace("{{{zlib_lib_paths}}}", self.zlib_lib_paths) \
             .replace("{{{zlib_include_paths}}}", self.zlib_include_paths) \
+            .replace("{{{zlib_name}}}", self.zlib_lib_name) \
             .replace("{{{bzip2_lib_paths}}}", self.bzip2_lib_paths) \
             .replace("{{{bzip2_include_paths}}}", self.bzip2_include_paths) \
+            .replace("{{{bzip2_name}}}", self.bzip2_lib_name) \
             .replace("{{{lzma_lib_paths}}}", self.lzma_lib_paths) \
             .replace("{{{lzma_include_paths}}}", self.lzma_include_paths) \
             .replace("{{{lzma_name}}}", self.lzma_lib_name) \
@@ -143,7 +147,8 @@ class boost(Generator):
             .replace("{{{python_version}}}", self.b2_python_version) \
             .replace("{{{python_include}}}", self.b2_python_include) \
             .replace("{{{python_lib}}}", self.b2_python_lib) \
-            .replace("{{{mpicxx}}}", self.b2_mpicxx)
+            .replace("{{{mpicxx}}}", self.b2_mpicxx) \
+            .replace("{{{profile_tools}}}", self.b2_profile_tools)
 
     @property
     def b2_os(self):
@@ -209,18 +214,25 @@ class boost(Generator):
 
     @property
     def b2_toolset_exec(self):
-        if self.b2_os in ['linux', 'freebsd', 'solaris', 'darwin'] or \
+        if self.b2_os in ['linux', 'freebsd', 'solaris', 'darwin', 'android'] or \
                 (self.b2_os == 'windows' and self.b2_toolset == 'gcc'):
-            version = str(self.settings.compiler.version).split('.')
-            result_x = self.b2_toolset.replace('gcc', 'g++') + "-" + version[0]
-            result_xy = result_x
-            if len(version) > 1:
-                result_xy += version[1] if version[1] != '0' else ''
 
             class dev_null(object):
 
                 def write(self, message):
                     pass
+
+            if 'CXX' in os.environ:
+                try:
+                    self.conanfile.run(os.environ['CXX'] + ' --version', output=dev_null())
+                    return os.environ['CXX']
+                except:
+                    pass
+            version = str(self.settings.compiler.version).split('.')
+            result_x = self.b2_toolset.replace('gcc', 'g++') + "-" + version[0]
+            result_xy = result_x
+            if len(version) > 1:
+                result_xy += version[1] if version[1] != '0' else ''
 
             try:
                 self.conanfile.run(result_xy + " --version", output=dev_null())
@@ -282,9 +294,18 @@ class boost(Generator):
         return ""
 
     @property
-    def bzip2_lib_paths(self):
+    def zlib_lib_name(self):
         try:
             if self.conanfile.options.use_zlib:
+                return os.path.basename(self.deps_build_info["zlib"].libs[0])
+        except:
+            pass
+        return ""
+
+    @property
+    def bzip2_lib_paths(self):
+        try:
+            if self.conanfile.options.use_bzip2:
                 return '"{0}"'.format('" "'.join(self.deps_build_info["bzip2"].lib_paths)).replace('\\', '/')
         except:
             pass
@@ -295,6 +316,15 @@ class boost(Generator):
         try:
             if self.conanfile.options.use_bzip2:
                 return '"{0}"'.format('" "'.join(self.deps_build_info["bzip2"].include_paths)).replace('\\', '/')
+        except:
+            pass
+        return ""
+
+    @property
+    def bzip2_lib_name(self):
+        try:
+            if self.conanfile.options.use_bzip2:
+                return os.path.basename(self.deps_build_info["bzip2"].libs[0])
         except:
             pass
         return ""
@@ -327,63 +357,59 @@ class boost(Generator):
         return ""
 
     @property
-    def b2_libcxx(self):
-        if self.b2_toolset == 'gcc':
-            if str(self.settings.compiler.libcxx) == 'libstdc++11':
+    def b2_cxxstd(self):
+        # for now, we use C++11 as default, unless we're targeting libstdc++ (not 11)
+        if self.b2_toolset in ['gcc', 'clang'] and self.b2_os != 'android':
+            if str(self.settings.compiler.libcxx) != 'libstdc++':
                 return '<cxxflags>-std=c++11 <linkflags>-std=c++11'
-        elif self.b2_toolset == 'clang':
+        return ''
+
+    @property
+    def b2_cxxabi(self):
+        if self.b2_toolset in ['gcc', 'clang'] and self.b2_os != 'android':
+            if str(self.settings.compiler.libcxx) == 'libstdc++11':
+                return '<define>_GLIBCXX_USE_CXX11_ABI=1'
+            elif str(self.settings.compiler.libcxx) == 'libstdc++':
+                return '<define>_GLIBCXX_USE_CXX11_ABI=0'
+        return ''
+
+    @property
+    def b2_libcxx(self):
+        if self.b2_toolset == 'clang' and self.b2_os != 'android':
             if str(self.settings.compiler.libcxx) == 'libc++':
                 return '<cxxflags>-stdlib=libc++ <linkflags>-stdlib=libc++'
-            elif str(self.settings.compiler.libcxx) == 'libstdc++11':
-                return '<cxxflags>-stdlib=libstdc++ <linkflags>-stdlib=libstdc++ <cxxflags>-std=c++11 <linkflags>-std=c++11'
-            else:
+            elif str(self.settings.compiler.libcxx) in ['libstdc++11', 'libstdc++']:
                 return '<cxxflags>-stdlib=libstdc++ <linkflags>-stdlib=libstdc++'
         return ''
+
+    _python_dep = "python_dev_config"
 
     @property
     def b2_python_exec(self):
         try:
-            pyexec = str(self.conanfile.options.python)
-            output = StringIO()
-            self.conanfile.run('{0} -c "import sys; print(sys.executable)"'.format(pyexec), output=output)
-            return '"' + output.getvalue().strip().replace("\\", "/") + '"'
+            return self.conanfile.deps_user_info[self._python_dep].python_exec.replace('\\', '/')
         except:
             return ""
 
-    _python_version = ""
-
     @property
     def b2_python_version(self):
-        cmd = "from sys import *; print('%d.%d' % (version_info[0],version_info[1]))"
-        self._python_version = self._python_version or self.run_python_command(cmd)
-        return self._python_version
+        try:
+            return self.conanfile.deps_user_info[self._python_dep].python_version.replace('\\', '/')
+        except:
+            return ""
 
     @property
     def b2_python_include(self):
-        pyinclude = self.get_python_path("include")
-        if not os.path.exists(os.path.join(pyinclude, 'pyconfig.h')):
+        try:
+            return self.conanfile.deps_user_info[self._python_dep].python_include_dir.replace('\\', '/')
+        except:
             return ""
-        else:
-            return pyinclude.replace('\\', '/')
 
     @property
     def b2_python_lib(self):
-        stdlib_dir = os.path.dirname(self.get_python_path("stdlib"))
-        if self.settings.os == "Windows":
-            stdlib_dir = ""
-        return stdlib_dir.replace('\\', '/')
-
-    def get_python_path(self, dir_name):
-        cmd = "import sysconfig; print(sysconfig.get_path('{0}'))".format(dir_name)
-        return self.run_python_command(cmd)
-
-    def run_python_command(self, cmd):
-        pyexec = self.b2_python_exec
-        if pyexec:
-            output = StringIO()
-            self.conanfile.run('{0} -c "{1}"'.format(pyexec, cmd), output=output)
-            return output.getvalue().strip()
-        else:
+        try:
+            return self.conanfile.deps_user_info[self._python_dep].python_lib_dir.replace('\\', '/')
+        except:
             return ""
 
     @property
@@ -448,18 +474,18 @@ class boost(Generator):
         if self.b2_os != 'windows' and self.b2_toolset in ['gcc', 'clang'] and self.b2_link == 'static':
             return '<flags>-fPIC\n<cxxflags>-fPIC'
         return ''
-    
+
     @property
     def b2_mpicxx(self):
         try:
             return str(self.conanfile.options.mpicxx)
         except:
             return ''
-    
+
     @property
     def b2_threading(self):
         return 'multi'
-    
+
     @property
     def b2_threadapi(self):
         try:
@@ -479,3 +505,40 @@ class boost(Generator):
             return 'win32'
         else:
             return 'pthread'
+
+    @property
+    def b2_profile_flags(self):
+        def format_b2_flags(token, flags):
+            return ' '.join(['%s"%s"' % (token, flag) for flag in flags.split()])
+
+        if self.b2_toolset == 'gcc' or self.b2_toolset == 'clang':
+            additional_flags = []
+            if 'CFLAGS' in os.environ:
+                additional_flags.append(format_b2_flags('<cflags>', os.environ['CFLAGS']))
+            if 'CXXFLAGS' in os.environ:
+                additional_flags.append(format_b2_flags('<cxxflags>', os.environ['CXXFLAGS']))
+            if 'LDFLAGS' in os.environ:
+                additional_flags.append(format_b2_flags('<linkflags>', os.environ['LDFLAGS']))
+            return '\n'.join(additional_flags)
+        else:
+            return ''
+
+    @property
+    def b2_profile_tools(self):
+        if self.b2_toolset == 'gcc' or self.b2_toolset == 'clang':
+            additional_flags = []
+            if 'SYSROOT' in os.environ:
+                additional_flags.append('<root>%s' % os.environ['SYSROOT'])
+            if 'AR' in os.environ:
+                additional_flags.append('<archiver>%s' % os.environ['AR'])
+            if 'RANLIB' in os.environ:
+                additional_flags.append('<ranlib>%s' % os.environ['RANLIB'])
+            if self.b2_os == 'darwin' or self.b2_os == 'iphone':
+                if 'STRIP' in os.environ:
+                    additional_flags.append('<striper>%s' % os.environ['STRIP'])
+            additional_flags = ' '.join(additional_flags)
+            if len(additional_flags):
+                additional_flags = ': ' + additional_flags
+            return additional_flags
+        else:
+            return ''
