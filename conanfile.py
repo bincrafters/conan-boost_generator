@@ -69,6 +69,8 @@ class boost(Generator):
                 .replace("{{{toolset_version}}}", self.b2_toolset_version) \
                 .replace("{{{toolset_exec}}}", self.b2_toolset_exec) \
                 .replace("{{{libcxx}}}", self.b2_libcxx) \
+                .replace("{{{cxxstd}}}", self.b2_cxxstd) \
+                .replace("{{{cxxabi}}}", self.b2_cxxabi) \
                 .replace("{{{libpath}}}", self.b2_icu_lib_paths) \
                 .replace("{{{arch_flags}}}", self.b2_arch_flags) \
                 .replace("{{{isysroot}}}", self.b2_isysroot) \
@@ -220,7 +222,6 @@ class boost(Generator):
                 def write(self, message):
                     pass
 
-
             if 'CXX' in os.environ:
                 try:
                     self.conanfile.run(os.environ['CXX'] + ' --version', output=dev_null())
@@ -356,16 +357,28 @@ class boost(Generator):
         return ""
 
     @property
-    def b2_libcxx(self):
-        if self.b2_toolset == 'gcc' and self.b2_os != 'android':
-            if str(self.settings.compiler.libcxx) == 'libstdc++11':
+    def b2_cxxstd(self):
+        # for now, we use C++11 as default, unless we're targeting libstdc++ (not 11)
+        if self.b2_toolset in ['gcc', 'clang'] and self.b2_os != 'android':
+            if str(self.settings.compiler.libcxx) != 'libstdc++':
                 return '<cxxflags>-std=c++11 <linkflags>-std=c++11'
-        elif self.b2_toolset == 'clang' and self.b2_os != 'android':
+        return ''
+
+    @property
+    def b2_cxxabi(self):
+        if self.b2_toolset in ['gcc', 'clang'] and self.b2_os != 'android':
+            if str(self.settings.compiler.libcxx) == 'libstdc++11':
+                return '<define>_GLIBCXX_USE_CXX11_ABI=1'
+            elif str(self.settings.compiler.libcxx) == 'libstdc++':
+                return '<define>_GLIBCXX_USE_CXX11_ABI=0'
+        return ''
+
+    @property
+    def b2_libcxx(self):
+        if self.b2_toolset == 'clang' and self.b2_os != 'android':
             if str(self.settings.compiler.libcxx) == 'libc++':
                 return '<cxxflags>-stdlib=libc++ <linkflags>-stdlib=libc++'
-            elif str(self.settings.compiler.libcxx) == 'libstdc++11':
-                return '<cxxflags>-stdlib=libstdc++ <linkflags>-stdlib=libstdc++ <cxxflags>-std=c++11 <linkflags>-std=c++11'
-            else:
+            elif str(self.settings.compiler.libcxx) in ['libstdc++11', 'libstdc++']:
                 return '<cxxflags>-stdlib=libstdc++ <linkflags>-stdlib=libstdc++'
         return ''
 
