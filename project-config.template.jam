@@ -6,7 +6,7 @@ if ! {{{toolset}}} in [ feature.values <toolset> ]
 local zlib_lib_paths = {{{zlib_lib_paths}}} ;
 local zlib_include_paths = {{{zlib_include_paths}}} ;
 local zlib_name = {{{zlib_name}}} ;
-if {$(zlib_include_paths)
+if $(zlib_include_paths)
 {
     using zlib : : <include>$(zlib_include_paths) <search>$(zlib_lib_paths) <name>$(zlib_name) ;
 }
