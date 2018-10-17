@@ -98,13 +98,16 @@ class boost(Generator):
                 dep_libdir = os.path.join(dep_cpp_info.rootpath, libdir)
                 if os.path.isfile(os.path.join(dep_libdir, "jamroot.jam")):
                     lib_short_name = os.path.basename(os.path.dirname(dep_libdir))
+                    lib_project_name = "\"/" + dep_name + "," + lib_short_name + "\""
                     deps_info.append(
-                        "use-project /" + dep_name + "," + lib_short_name + " : " + dep_libdir.replace('\\', '/') + " ;")
+                        "use-project " + lib_project_name + " : \"" + dep_libdir.replace('\\', '/') + "\" ;")
+                    deps_info.append(
+                        "alias \"" + lib_short_name + "\" : " + lib_project_name + " ;")
                     try:
                         dep_short_names = self.conanfile.deps_user_info[dep_name].lib_short_names.split(",")
                         for dep_short_name in dep_short_names:
                             deps_info.append(
-                                'LIBRARY_DIR(' + dep_short_name + ') = "' + dep_libdir.replace('\\', '/') + '" ;')
+                                '"LIBRARY_DIR(' + dep_short_name + ')" = "' + dep_libdir.replace('\\', '/') + '" ;')
                     except KeyError:
                         pass
 
