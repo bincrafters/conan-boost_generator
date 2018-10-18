@@ -117,6 +117,7 @@ import path ;
 import feature ;
 import boostcpp ;
 import os ;
+import regex ;
 
 HERE = [ path.parent [ path.root [ path.make [ modules.binding $(__name__) ] ] [ path.pwd ] ] ] ;
 
@@ -192,21 +193,6 @@ module boostcpp
     }
 }
 
-rule lib_target_usage ( properties * )
-{
-    properties = [ patch_references $(properties) ] ;
-    local library = [ MATCH "CONAN_LIB_BUILD=(.*)" : $(properties:G=) ] ;
-    local libraries = [ feature.get-values <library> : $(properties) ] ;
-    if $(libraries)
-    {
-        libraries = [ MATCH "([/]boost[/].*)" : $(libraries) ] ;
-        if $(libraries)
-        {
-            LIBRARY_USAGE($(library)) = <library>$(libraries) ;
-        }
-    }
-}
-
 rule lib_target (
     name : sources * : requirements * : default-build * : usage-requirements * )
 {
@@ -214,19 +200,18 @@ rule lib_target (
     requirements = [ patch_references $(requirements) ] ;
     usage-requirements = [ patch_references $(usage-requirements) ] ;
     local caller = [ CALLER_MODULE ] ;
-    IMPORT $(__name__) : lib_target_usage : $(caller) : lib_target_usage ;
-    EXPORT $(caller) : lib_target_usage ;
-    local usage = $(usage-requirements) ;
     local library = [ MATCH "($(LIBRARIES_BUILD:J=|))" : $(name) ] ;
     if $(library)
     {
-        usage += <conditional>@lib_target_usage ;
+        local libraries = [ regex.transform $(usage-requirements) : "(.*[<]library[>]/boost/.*)" ] ;
+        LIBRARY_USAGE($(library)) = $(libraries) ;
     }
-    # ECHO >>>>>>>>>> LIB $(name) :: $(sources) :: $(requirements)
-    #    :: $(default-build) :: $(usage) <define>CONAN_LIB_BUILD=$(library) ;
+    #ECHO @@@@ LIB $(caller) $(name) @ $(sources) @ $(requirements)
+    #    @ $(default-build) @ $(usage-requirements) <define>CONAN_LIB_BUILD=$(library)
+    #    >>> $(LIBRARY_USAGE($(library))) ;
     return [ modules.call-in $(caller) :
         __lib_target__ $(name) : $(sources) : $(requirements)
-            : $(default-build) : $(usage) <define>CONAN_LIB_BUILD=$(library)
+            : $(default-build) : $(usage-requirements) <define>CONAN_LIB_BUILD=$(library)
         ] ;
 }
 IMPORT : lib : : __lib_target__ ;
