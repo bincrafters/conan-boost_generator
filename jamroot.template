@@ -145,9 +145,12 @@ project boost
     # from getting applied.
     <link>shared,<target-os>darwin,<toolset>clang:<linkflags>"-undefined dynamic_lookup"
     {{{libcxx}}}
+    {{{cxxstd}}}
+    {{{cxxabi}}}
     {{{arch_flags}}}
     {{{isysroot}}}
     {{{fpic}}}
+    {{{profile_flags}}}
 :   build-dir bin
 :   default-build {{{variant}}}
     <target-os>{{{os}}}
