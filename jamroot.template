@@ -117,6 +117,7 @@ import path ;
 import feature ;
 import boostcpp ;
 import os ;
+import regex ;
 
 HERE = [ path.parent [ path.root [ path.make [ modules.binding $(__name__) ] ] [ path.pwd ] ] ] ;
 
@@ -139,10 +140,17 @@ project boost
     <target-os>darwin:<linkflags>-std=c++11
     <library-path>$(LIBPATH)
     <threadapi>{{{threadapi}}}
+    # This is a terrible hack around a possible b2 bug that prevents the
+    # link-flags specified in usage requirements of /python//python_for_extensions
+    # from getting applied.
+    <link>shared,<target-os>darwin,<toolset>clang:<linkflags>"-undefined dynamic_lookup"
     {{{libcxx}}}
+    {{{cxxstd}}}
+    {{{cxxabi}}}
     {{{arch_flags}}}
     {{{isysroot}}}
     {{{fpic}}}
+    {{{profile_flags}}}
 :   build-dir bin
 :   default-build {{{variant}}}
     <target-os>{{{os}}}
@@ -172,7 +180,7 @@ rule boost-install ( libraries * )
 rule boost-lib ( name : sources * : requirements * : default-build * : usage-requirements * )
 {
     name = boost_$(name) ;
-    lib $(name) : $(sources) : $(requirements) : $(default-build) : $(usage-requirements) ;
+    lib $(name) : $(sources) : $(requirements) <link>shared:<define>$(name:U)_DYN_LINK=1 : $(default-build) : $(usage-requirements) ;
 }
 
 module boostcpp
@@ -188,21 +196,6 @@ module boostcpp
     }
 }
 
-rule lib_target_usage ( properties * )
-{
-    properties = [ patch_references $(properties) ] ;
-    local library = [ MATCH "CONAN_LIB_BUILD=(.*)" : $(properties:G=) ] ;
-    local libraries = [ feature.get-values <library> : $(properties) ] ;
-    if $(libraries)
-    {
-        libraries = [ MATCH "([/]boost[/].*)" : $(libraries) ] ;
-        if $(libraries)
-        {
-            LIBRARY_USAGE($(library)) = <library>$(libraries) ;
-        }
-    }
-}
-
 rule lib_target (
     name : sources * : requirements * : default-build * : usage-requirements * )
 {
@@ -210,19 +203,18 @@ rule lib_target (
     requirements = [ patch_references $(requirements) ] ;
     usage-requirements = [ patch_references $(usage-requirements) ] ;
     local caller = [ CALLER_MODULE ] ;
-    IMPORT $(__name__) : lib_target_usage : $(caller) : lib_target_usage ;
-    EXPORT $(caller) : lib_target_usage ;
-    local usage = $(usage-requirements) ;
     local library = [ MATCH "($(LIBRARIES_BUILD:J=|))" : $(name) ] ;
     if $(library)
     {
-        usage += <conditional>@lib_target_usage ;
+        local libraries = [ regex.transform $(usage-requirements) : "(.*[<]library[>]/boost/.*)" ] ;
+        LIBRARY_USAGE($(library)) = $(libraries) ;
     }
-    # ECHO >>>>>>>>>> LIB $(name) :: $(sources) :: $(requirements)
-    #    :: $(default-build) :: $(usage) <define>CONAN_LIB_BUILD=$(library) ;
+    #ECHO @@@@ LIB $(caller) $(name) @ $(sources) @ $(requirements)
+    #    @ $(default-build) @ $(usage-requirements) <define>CONAN_LIB_BUILD=$(library)
+    #    >>> $(LIBRARY_USAGE($(library))) ;
     return [ modules.call-in $(caller) :
         __lib_target__ $(name) : $(sources) : $(requirements)
-            : $(default-build) : $(usage) <define>CONAN_LIB_BUILD=$(library)
+            : $(default-build) : $(usage-requirements) <define>CONAN_LIB_BUILD=$(library)
         ] ;
 }
 IMPORT : lib : : __lib_target__ ;
@@ -244,7 +236,8 @@ rule export-lib-jamroot ( targets * : sources * : properties * )
     local dollar = "\$" ;
     local usage = "$(LIBRARY_USAGE($(library)):J= )" ;
     print.text "project.register-id /boost/$(library) : $(dollar)(__name__) ;" ;
-    print.text "lib boost_$(library) : : <name>boost_$(library) <search>. : : $(usage:E=) ;" ;
+    print.text "local usage = $(usage:E=) ;" ;
+    #print.text "lib boost_$(library) : : <name>boost_$(library) <search>. : : $(usage:E=) ;" ;
     print.text "" ;
 }
 
