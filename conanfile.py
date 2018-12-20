@@ -22,7 +22,7 @@ class BoostGenerator(ConanFile):
     description = "Conan build generator for boost libraries http://www.boost.org/doc/libs/1_69_0/libs/libraries.htm"
     license = "BSL"
     exports = "boostcpp.jam", "jamroot.template", "project-config.template.jam"
-    requires = "boost_build/1.69.0@bincrafters/testing"
+    requires = "boost_build/1.69.0@bincrafters/stable"
 
 # Below is the actual generator code
 
