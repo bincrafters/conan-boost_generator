@@ -89,10 +89,7 @@ class boost(Generator):
         return boostcpp_content
 
     def get_boost_generator_source_path(self):
-        boost_generator = self.conanfile.deps_cpp_info["boost_generator"]
-        boost_generator_root_path = boost_generator.rootpath
-        boost_generator_source_path = os.path.join(boost_generator_root_path, os.pardir, os.pardir, "export")
-        return boost_generator_source_path
+        return os.path.dirname(__file__)
 
     def get_deps_info_for_jamfile(self):
         deps_info = []
