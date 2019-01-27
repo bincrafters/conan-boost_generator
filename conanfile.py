@@ -18,7 +18,6 @@ import sys
 class BoostGenerator(ConanFile):
     name = "boost_generator"
     version = "1.68.0"
-    version = "1.68.0"
     url = "https://github.com/bincrafters/conan-boost_generator"
     description = "Conan build generator for boost libraries http://www.boost.org/doc/libs/1_68_0/libs/libraries.htm"
     license = "BSL"
