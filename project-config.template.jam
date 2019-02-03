@@ -34,6 +34,17 @@ else
 {
     modules.poke : NO_LZMA : 1 ;
 }
+local zstd_lib_paths = {{{zstd_lib_paths}}} ;
+local zstd_include_paths = {{{zstd_include_paths}}} ;
+local zstd_name = {{{zstd_name}}} ;
+if $(zstd_include_paths)
+{
+    using zstd : : <include>$(zstd_include_paths) <search>$(zstd_lib_paths) <name>$(zstd_name) ;
+}
+else
+{
+    modules.poke : NO_ZSTD : 1 ;
+}
 local python_exec = {{{python_exec}}} ;
 local python_include = {{{python_include}}} ;
 local python_lib = {{{python_lib}}} ;
