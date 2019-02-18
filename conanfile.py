@@ -429,7 +429,7 @@ class boost(Generator):
     @property
     def b2_python_lib(self):
         try:
-            return self.conanfile.deps_user_info[self._python_dep].python_lib_dir.replace('\\', '/')
+            return self.conanfile.deps_user_info[self._python_dep].python_lib.replace('\\', '/')
         except:
             return ""
 
