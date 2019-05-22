@@ -62,6 +62,7 @@ class boost(Generator):
                 .replace("{{{libpath}}}", self.b2_icu_lib_paths) \
                 .replace("{{{arch_flags}}}", self.b2_arch_flags) \
                 .replace("{{{isysroot}}}", self.b2_isysroot) \
+                .replace("{{{os_version}}}", self.b2_os_version) \
                 .replace("{{{fpic}}}", self.b2_fpic) \
                 .replace("{{{threading}}}", self.b2_threading) \
                 .replace("{{{threadapi}}}", self.b2_threadapi) \
@@ -491,6 +492,13 @@ class boost(Generator):
     def b2_isysroot(self):
         if self.b2_os == 'darwin' or self.b2_os == 'iphone':
             return '<flags>"-isysroot {0}"'.format(self.apply_isysroot)
+        return ''
+
+    @property
+    def b2_os_version(self):
+        if (self.b2_os == 'darwin' or self.b2_os == 'iphone') and self.settings.get_safe("os.version"):
+            return '<flags>"{0}"'.format(tools.apple_deployment_target_flag(self.settings.os,
+                                                                            self.settings.os.version))
         return ''
 
     @property
